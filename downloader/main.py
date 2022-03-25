@@ -65,6 +65,7 @@ def main():
             df['ticker'] = ticker
             # add each row to es as a document
             # TODO: This is too serial, for each time point makes an index call. it could be done a bit more parallel.
+            # TODO: in the next calls we will need to add only those values that are not in the elastic search alrady.
             for my_dict in df.to_dict(orient='records'):
                 # Send JSON to es to INDEX_NAME.
                 logger.info('Sending to ES:')
