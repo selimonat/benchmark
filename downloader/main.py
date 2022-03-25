@@ -15,7 +15,7 @@ pd.set_option('display.width', 1000)
 
 logger = utils.get_logger("downloader")
 
-ES_HOST = "localhost:9200"
+ES_HOST = "elasticsearch:9200"
 
 
 def setup_es(index_name, client):
@@ -73,7 +73,7 @@ def main():
                                 document=json.dumps(my_dict))
 
         # Sleep a bit so that Yahoo doesn't black list us
-        time.sleep(1)
+        time.sleep(60)
 
 
 if __name__ == '__main__':

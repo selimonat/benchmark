@@ -1,0 +1,15 @@
+FROM python:3.7.6
+
+RUN apt-get update
+RUN apt-get -y install python3-dev
+RUN apt-get -y install default-libmysqlclient-dev
+RUN apt-get -y install build-essential
+
+COPY . ./downloader
+
+WORKDIR /downloader
+
+RUN pip install -U pip
+RUN pip install -r requirements.txt --extra-index-url https://www.piwheels.org/simple
+
+CMD python main.py
