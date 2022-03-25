@@ -6,6 +6,9 @@ authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
+yfinance = "^0.1.70"
+elasticsearch = "^7"
+elasticsearch-dsl = "^7.4.0"
 
 [tool.poetry.dev-dependencies]
 
