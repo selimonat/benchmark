@@ -64,6 +64,7 @@ def main():
             # add the ticker as a column
             df['ticker'] = ticker
             # add each row to es as a document
+            # TODO: This is too serial, for each time point makes an index call. it could be done a bit more parallel.
             for my_dict in df.to_dict(orient='records'):
                 # Send JSON to es to INDEX_NAME.
                 logger.info('Sending to ES:')
