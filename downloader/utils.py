@@ -1,7 +1,6 @@
 import pandas as pd
 import logging
 import os
-import datetime
 
 
 def get_all_tickers():
@@ -37,11 +36,3 @@ def get_logger(name):
     f_handler.setFormatter(formatter)
     logger_.addHandler(f_handler)
     return logger_
-
-
-def parse_epoch(time_):
-    """
-    :param time_: epoch timestamp
-    :return: iso 8601 formatted datetime str that cbpro API is expecting.
-    """
-    return datetime.datetime.fromtimestamp(time_, tz=datetime.timezone.utc)
