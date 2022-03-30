@@ -1,6 +1,6 @@
 import yfinance as yf
 import pandas as pd
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, helpers
 import uuid
 import json
 import time
@@ -15,7 +15,7 @@ pd.set_option('display.width', 1000)
 
 logger = utils.get_logger("downloader")
 
-ES_HOST = "elasticsearch:9200"
+ES_HOST = "localhost:9200"
 
 
 def setup_es(index_name, client):
@@ -40,13 +40,13 @@ def main():
 
     # create indices if they are not already created
     for ind in ['time-series']:
-        if not client_es.indices.exists(ind):
+        if not client_es.indices.exists(index=ind):
             setup_es(ind, client_es)
 
     tickers = utils.get_all_tickers()
-    logger.info('Found these tickers:\n{}', tickers.to_json())
+    logger.info(f'Found these tickers:\n{tickers.to_json()}')
 
-    for ticker in np.random.choice(tickers, 100):
+    for ticker in tickers:
 
         logger.info(f"working on ticker {ticker}.")
         # Get ticker's balance sheet from Yahoo Finance
@@ -64,20 +64,28 @@ def main():
             # add the ticker as a column
             df['ticker'] = ticker
             # add each row to es as a document
-            # TODO: This is too serial, for each time point makes an index call. it could be done a bit more parallel.
             # TODO: in the next calls we will need to add only those values that are not in the elastic search alrady.
-            for my_dict in df.to_dict(orient='records'):
-                # Send JSON to es to INDEX_NAME.
-                logger.info('Sending to ES:')
-                client_es.index(index='time-series',
-                                doc_type='_doc',
-                                id=uuid.uuid4(),
-                                document=json.dumps(my_dict))
+            # TODO: Create a function returning yield to replace the dict actions below.
+            actions = [
+                {
+                    "_index": "time-series",
+                    # "_type": "_doc",
+                    "_id": uuid.uuid4(),
+                    "_document": json.dumps(node)
+                }
+                for node in df.to_dict(orient='records')
+            ]
+            try:
+                response = helpers.bulk(client_es, actions)
+                logger.info(f"Bulk sending data to ES, got this {response}.")
+
+            except:
+                logger.error(f"Bulk sending data to ES failed..")
 
         # Sleep a bit so that Yahoo doesn't black list us
-        time.sleep(60)
+        logger.info(f"Will wait a bit before the next call")
+        time.sleep(20)
 
 
 if __name__ == '__main__':
     main()
-
