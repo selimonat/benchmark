@@ -69,9 +69,9 @@ def main():
             actions = [
                 {
                     "_index": "time-series",
-                    # "_type": "_doc",
+                    "_type": "_doc",
                     "_id": uuid.uuid4(),
-                    "_document": json.dumps(node)
+                    "_source": json.dumps(node)
                 }
                 for node in df.to_dict(orient='records')
             ]
