@@ -1,40 +1,46 @@
-import random
-import utils
+from portfolio import utils
+from portfolio import Database
+
+db = Database.DB(hostname=None)
 
 
 class Position:
-    def __init__(self, ticker, date):
+    def __init__(self, ticker: str, date: list):
         self.ticker = ticker
         self.open_date = date
-        self.value_at_open = DB.read(ticker, self.open_date)
+        self.value_at_open = db.read(ticker, self.open_date)
 
     @property
-    def value_now(self):
+    def value_yesterday(self) -> list:
         """
-        Value of the position today.
-        :return:
+        Returns:
+            float: Value of the position yesterday.
         """
-        return DB.read(self.ticker, date=utils.today())
+        return self.value_at(utils.today())
 
-    def value_at(self, date):
+    def value_at(self, date: list) -> list:
         """
         Value at an arbitrary date.
-        :param date: epoch seconds
-        :return: float
+        Args:
+            date: epoch seconds
+
+        Returns:
+            list: The value of the position
         """
-        return DB.read(self.ticker, date=date)
+        return db.read(self.ticker, date=date)
 
-    def returns_at(self, date):
+    def returns_yesterday(self):
         """
-        Returns returns as percentage for all dates.
-        :param date:
-        :return: percentage
+        Returns of the position as a percentage.
+
+        Returns:
+            float: Returns
         """
-        return self.value_at_open / self.value_now * 100
+        return self.value_yesterday[0] / self.value_at_open[0] * 100
 
 
-
-class Portfolio:
-    def __init__(self):
-        self.position = []
-    def
+# class Portfolio:
+#     def __init__(self):
+#         self.position = []
+#
+#     def
