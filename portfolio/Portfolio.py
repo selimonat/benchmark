@@ -1,30 +1,36 @@
-class DB:
-    def __init__(self):
-        self.connection = []
-
-    def write(self, ticker, data):
-        return 1
-
-    def read(self, ticker, date):
-        return 1
+import random
+import utils
 
 
 class Position:
     def __init__(self, ticker, date):
         self.ticker = ticker
-        self.open_at = date
-        self.value_at_open = DB.read(ticker, date)
-        self.value_now = DB.read(ticker)
+        self.open_date = date
+        self.value_at_open = DB.read(ticker, self.open_date)
 
-    def returns(self, date):
+    @property
+    def value_now(self):
         """
-            Returns returns as percentage for all dates.
-        :param date:
+        Value of the position today.
         :return:
         """
-        pass
+        return DB.read(self.ticker, date=utils.today())
 
+    def value_at(self, date):
+        """
+        Value at an arbitrary date.
+        :param date: epoch seconds
+        :return: float
+        """
+        return DB.read(self.ticker, date=date)
 
+    def returns_at(self, date):
+        """
+        Returns returns as percentage for all dates.
+        :param date:
+        :return: percentage
+        """
+        return self.value_at_open / self.value_now * 100
 
 
 

@@ -1,0 +1,1 @@
+Run tests running ` python -m pytest portfolio/tests` from project directory.
