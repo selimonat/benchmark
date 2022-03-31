@@ -14,14 +14,17 @@ class DB:
         self.logger = utils.get_logger(self.__class__.__name__)
 
     # TODO: can declare optional types for date argument?
-    def read(self, ticker: str, date) -> dict:
+    # TODO: exceptions where ticker doesn't exist must be handled.
+    def read(self, ticker: str, date: list) -> list:
         """
-        Value of ticker at date(s). Date can be an iterable.
-        :param ticker: str
-        :param date: integer or list of timestamps.
-        :return: A dict as {date:value}
-        """
+        Reads value of a ticker at a given list of dates.
+        Args:
+            ticker: (str)
+            date: (list) timestamps, epoch seconds
 
+        Returns:
+            list: values.
+        """
         date = utils.ensure_iterable(date)
         self.logger.info(f'Reading {ticker} value at {date} from {self.connection}.')
-        return {k: random.random() for k in date}
+        return [random.random() for _ in date]
