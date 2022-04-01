@@ -1,6 +1,7 @@
 """Module to parse portfolios exported to csv file"""
 import pandas as pd
 import portfolio.utils as utils
+from dateutil import parser
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', 500)
@@ -41,6 +42,9 @@ def parse(filename):
             logger.info(f'Assuming missing actions as buy.')
             df['action'] = 'buy'
     logger.debug('Parsed export file as follows\n' + df.to_string())
+    logger.info('Parsing date column.')
+    df['date'] = df['date'].astype(str).apply(parser.parse).astype(int) / 10 ** 9
+    logger.debug('Converted, now it looks like this\n' + df.to_string())
     return df
 
 
