@@ -11,6 +11,7 @@ elasticsearch = "^7"
 elasticsearch-dsl = "^7.4.0"
 diagrams = "^0.21.1"
 pytest = "^7.1.1"
+typer = "^0.4.1"
 
 [tool.poetry.dev-dependencies]
 
