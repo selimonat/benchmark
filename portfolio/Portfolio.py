@@ -49,7 +49,7 @@ class Position:
 
 class Portfolio:
     """
-    Portfolio makes the book keeping of all transactions.
+    Portfolio makes the book keeping of all transaction_table.
     """
     def __init__(self, df):
         """
@@ -63,7 +63,8 @@ class Portfolio:
         dates = df.date
 
         out = [Position(act, am, t, d).df for act, am, t, d in zip(actions, quantities, tickers, dates)]
-        self.transactions = pd.concat(out, axis=0)
+        self.transaction_table = pd.concat(out, axis=0)
+        self.time_table = pd.DataFrame(index=self.time_line)
 
     @property
     def start_time(self):
@@ -78,7 +79,7 @@ class Portfolio:
     @property
     def time_line(self):
         # The time axis of the portfolio. step size is day.
-        return np.arange(self.start_time, self.current_time, (60*60*24))
+        return np.arange(self.start_time, self.current_time, (60*60*24), dtype=int)
 
     def returns(self):
         pass
