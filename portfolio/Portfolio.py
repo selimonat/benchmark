@@ -6,6 +6,10 @@ db = Database.DB(hostname=None)
 
 
 class Position:
+    """
+    Intermediate data structure between parsed export file and transaction table. If purchase price not present,
+    it adds one.
+    """
     def __init__(self, action: str, quantity: int, ticker: str, date: int):
         self.action = action
         self.quantity = quantity
@@ -43,9 +47,14 @@ class Position:
 
 class Portfolio:
     """
-    Portfolio holds a bunch of positions and have methods to add and remove them. Each action triggers a recompute.
+    Portfolio makes the book keeping of all transactions.
     """
     def __init__(self, df):
+        """
+
+        Args:
+            df: dataframe resulting from parsing the export file.
+        """
         actions = df.action
         quantities = df.quantity
         tickers = df.ticker

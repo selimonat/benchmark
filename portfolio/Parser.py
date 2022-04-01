@@ -9,6 +9,7 @@ pd.set_option('display.width', 1000)
 
 logger = utils.get_logger(__name__)
 
+# used to map all columns names listed in values, to their keys.
 mapping = {'price': ['purchase price'],
            'action': [],
            'quantity': ['quantity', 'amount'],
@@ -18,6 +19,14 @@ mapping = {'price': ['purchase price'],
 
 
 def parse(filename):
+    """
+    Extracts 5 columns from the export: price, action, quantity, ticker and date. If action not present, assumes buy.
+    Args:
+        filename:
+
+    Returns:
+        df: parsed data structure as pandas dataframe.
+    """
     df = pd.read_csv(filename)
     # rename columns
     df = df.rename(mapper=column_mapper, axis=1)
@@ -36,6 +45,15 @@ def parse(filename):
 
 
 def column_mapper(old_colname):
+    """
+    Maps column names as specified in the mapping variable. Standardize column names by mapping similar ones to the
+    same one e.g. Purchase Price -> price; buy Price -> price, etc.
+    It is called by the rename method of pandas.
+    Args:
+        old_colname:
+    Returns:
+        new column name, which are
+    """
 
     new_colname = [k for k, v in mapping.items() if old_colname.lower() in v]
     logger.debug(f'Mapping {old_colname} to {new_colname}')
