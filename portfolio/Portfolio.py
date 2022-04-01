@@ -1,6 +1,8 @@
 from portfolio import utils
 from portfolio import Database
 import pandas as pd
+from dateutil import parser
+import numpy as np
 
 db = Database.DB(hostname=None)
 
@@ -63,18 +65,20 @@ class Portfolio:
         out = [Position(act, am, t, d).df for act, am, t, d in zip(actions, quantities, tickers, dates)]
         self.transactions = pd.concat(out, axis=0)
 
-    def buy(self, ticker, date, amount):
-        pass
+    @property
+    def start_time(self):
+        # Start time of the portfolio, typically earliest opened position
+        return parser.parse("20200101T000000 UTC").timestamp()
 
-    def sell(self, ticker, date, amount):
-        pass
+    @property
+    def current_time(self):
+        # Returns current day as timestamp in UTC
+        return utils.today()
+
+    @property
+    def time_line(self):
+        # The time axis of the portfolio. step size is day.
+        return np.arange(self.start_time, self.current_time, (60*60*24))
 
     def returns(self):
         pass
-
-
-if __name__ == '__main__':
-    p = Portfolio(actions=['buy', 'buy'],
-                  quantities=[2, 3],
-                  tickers=['babs', 'tops'],
-                  dates=[134124, 13413])
