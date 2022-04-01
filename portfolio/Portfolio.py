@@ -6,10 +6,20 @@ db = Database.DB(hostname=None)
 
 
 class Position:
-    def __init__(self, ticker: str, date: list):
+    def __init__(self, action: str, amount: int, ticker: str, date: int):
+        self.action = action
+        self.amount = amount
         self.ticker = ticker
         self.open_date = date
-        self.value_at_open = db.read(ticker, self.open_date)
+        self.value_at_open = db.read(ticker, [self.open_date])
+
+    @property
+    def df(self):
+        """
+        Returns:
+            DataFrame: 1 row pandas view on the position with attributes as columns.
+        """
+        return pd.DataFrame.from_dict(self.__dict__)
 
     @property
     def value_yesterday(self) -> list:
@@ -30,31 +40,28 @@ class Position:
         """
         return db.read(self.ticker, date=date)
 
-    def returns_yesterday(self):
-        """
-        Returns of the position as a percentage.
-
-        Returns:
-            float: Returns
-        """
-        return self.value_yesterday[0] / self.value_at_open[0] * 100
-
 
 class Portfolio:
     """
     Portfolio holds a bunch of positions and have methods to add and remove them. Each action triggers a recompute.
     """
-    def __init__(self, tickers: list, dates: list):
-        self.positions = pd.DataFrame()
-        for ticker, date in zip(tickers,dates):
-            self.buy(ticker, date)
+    def __init__(self, actions: list, amounts: list, tickers: list, dates: list):
 
-    def buy(self, ticker, date):
+        out = [Position(act, am, t, d).df for act, am, t, d in zip(actions, amounts, tickers, dates)]
+        self.transactions = pd.concat(out, axis=0)
+
+    def buy(self, ticker, date, amount):
         pass
 
-    def sell(self, ticker, date):
+    def sell(self, ticker, date, amount):
         pass
 
     def returns(self):
         pass
 
+
+if __name__ == '__main__':
+    p = Portfolio(actions=['buy', 'buy'],
+                  amounts=[2, 3],
+                  tickers=['babs', 'tops'],
+                  dates=[134124, 13413])
