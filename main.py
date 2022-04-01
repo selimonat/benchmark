@@ -29,7 +29,7 @@ def get_transactions(filename: str):
     """
     df = Parser.parse(filename)
     p = Portfolio(df)
-    print(p.transactions)
+    print(p.transaction_table)
     return p
 
 
