@@ -1,5 +1,5 @@
 import typer
-
+from portfolio import Parser
 app = typer.Typer(add_completion=False)
 
 
@@ -8,13 +8,13 @@ def parse_to_transactions(filename: str):
     """
     Parse a personal portfolio .csv file (e.g. export from Yahoo Finance) to a transaction table.
     Currently mock state.
-    Args:
-        filename: path to the file.
 
     Returns:
         Transaction table.
     """
-    typer.echo(f"Hello {filename}")
+    df = Parser.parse(filename)
+
+    return df
 
 
 if __name__ == "__main__":
