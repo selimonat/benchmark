@@ -45,7 +45,11 @@ class Portfolio:
     """
     Portfolio holds a bunch of positions and have methods to add and remove them. Each action triggers a recompute.
     """
-    def __init__(self, actions: list, quantities: list, tickers: list, dates: list):
+    def __init__(self, df):
+        actions = df.action
+        quantities = df.quantity
+        tickers = df.ticker
+        dates = df.date
 
         out = [Position(act, am, t, d).df for act, am, t, d in zip(actions, quantities, tickers, dates)]
         self.transactions = pd.concat(out, axis=0)
