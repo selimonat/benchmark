@@ -64,7 +64,16 @@ class Portfolio:
 
         out = [Position(act, am, t, d).df for act, am, t, d in zip(actions, quantities, tickers, dates)]
         self.transaction_table = pd.concat(out, axis=0)
-        self.time_table = pd.DataFrame(index=self.time_line)
+
+    @property
+    def timecourse_table(self):
+        t = self.transaction_table.shape[0]
+        container = list()
+        for i in range(t):
+            ticker = self.transaction_table.iloc[i].ticker
+            time_i = np.arange(self.transaction_table.iloc[i].date, self.current_time, (60*60*24))
+            container.append(pd.DataFrame(db.read(ticker, list(time_i)), index=time_i, columns=[ticker]))
+        return pd.concat(container, axis=1)
 
     @property
     def start_time(self):
