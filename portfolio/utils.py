@@ -6,7 +6,7 @@ import os
 
 def today():
     """
-    Epoch second representation of today taking 00:00 as the reference point.
+    Epoch second representation of today taking local 00:00 as the reference point.
     :return: integer, epoch timestamp
     """
     return floor((time() / (60*60*24))) * (60*60*24)
