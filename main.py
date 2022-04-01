@@ -17,6 +17,7 @@ def parse_export(filename: str):
     print(df)
     return df
 
+
 @app.command()
 def get_transactions(filename: str):
     """

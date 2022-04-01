@@ -8,7 +8,7 @@ db = Database.DB(hostname=None)
 class Position:
     """
     Intermediate data structure between parsed export file and transaction table. If purchase price not present,
-    it adds one.
+    it adds one. Represents the features associated with a single position.
     """
     def __init__(self, action: str, quantity: int, ticker: str, date: int):
         self.action = action
