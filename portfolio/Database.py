@@ -26,5 +26,6 @@ class DB:
             list: values.
         """
         date = utils.ensure_iterable(date)
-        self.logger.info(f'Reading {ticker} value at {date} from {self.connection}.')
+        self.logger.debug(f'Reading {ticker} value at {len(date)} different values (min: {min(date)}, max: {max(date)})'
+                          f' from {self.connection}.')
         return [random.random() for _ in date]
