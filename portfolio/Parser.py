@@ -19,7 +19,7 @@ mapping = {'price': ['purchase price'],
            }
 
 
-def parse(filename):
+def parse_file(filename):
     """
     Extracts 5 columns from the export: price, action, quantity, ticker and date. If action not present, assumes buy.
     Args:
@@ -47,6 +47,9 @@ def parse(filename):
     logger.info('Sorting transaction table by date')
     df.sort_values(by='date', inplace=True)
     logger.debug('Converted, now it looks like this\n' + df.to_string())
+    logger.info('Adjusting datatypes, avoiding objects.')
+    df['action'] = df['action'].astype("category")
+    df['ticker'] = df['ticker'].astype("category")
     return df
 
 
@@ -71,7 +74,7 @@ def column_mapper(old_colname):
 
 
 if __name__ == '__main__':
-    df2 = parse(filename='examples/portfolio_02.csv')
+    df2 = parse_file(filename='examples/portfolio_02.csv')
     from portfolio.Portfolio import Portfolio
     p = Portfolio(df2)
 
