@@ -13,9 +13,8 @@ def parse_export(filename: str):
     Returns:
         Transaction table.
     """
-    df = Parser.parse(filename)
+    df = Parser.parse_file(filename)
     print(df)
-    return df
 
 
 @app.command()
@@ -27,10 +26,23 @@ def get_transactions(filename: str):
     Returns:
         df: with 5 columns ticker, date, price, quantity, action
     """
-    df = Parser.parse(filename)
+    df = Parser.parse_file(filename)
     p = Portfolio(df)
-    print(p.transaction_table)
-    return p
+    print(p.table_transaction)
+
+
+@app.command()
+def get_time_course(filename: str):
+    """
+    Returns time-course of asset prices in the portfolio
+    Args:
+        filename:
+    Returns:
+        df: with as many columns as tickers in portfolio indexed on time.
+    """
+    df = Parser.parse_file(filename)
+    p = Portfolio(df)
+    print(p.table_time_course_asset_price.tail(10))
 
 
 if __name__ == "__main__":
