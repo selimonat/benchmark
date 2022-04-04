@@ -9,7 +9,7 @@ def today():
     Epoch second representation of today taking local 00:00 as the reference point.
     :return: integer, epoch timestamp
     """
-    return floor((time() / (60*60*24))) * (60*60*24)
+    return floor((time() / (60 * 60 * 24))) * (60 * 60 * 24)
 
 
 def get_logger(name):
@@ -44,3 +44,11 @@ def ensure_iterable(obj):
     if type(obj) != list:
         obj = [obj]
     return obj
+
+
+def group_rank_id(df, grouper, sorter):
+    # function to apply to each group
+    def group_fun(x): return x[sorter].reset_index(drop=True).reset_index().rename(columns={'index': 'rank'})
+    # apply and merge to itself
+    out = df.groupby(grouper).apply(group_fun).reset_index(drop=True)
+    return df.merge(out, on=sorter)
