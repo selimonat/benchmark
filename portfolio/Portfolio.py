@@ -49,7 +49,7 @@ class Position:
 
 class Portfolio:
     """
-    Portfolio makes the book keeping of all transaction_table.
+    Portfolio makes the book keeping of all transactions and time-course of asset prices.
     """
     def __init__(self, df):
         """
@@ -63,17 +63,34 @@ class Portfolio:
         dates = df.date
 
         out = [Position(act, am, t, d).df for act, am, t, d in zip(actions, quantities, tickers, dates)]
-        self.transaction_table = pd.concat(out, axis=0)
+        self.table_transaction = pd.concat(out, axis=0).reset_index(drop=True)
+        # table_transaction is indexed on transaction number.
 
     @property
-    def timecourse_table(self):
-        t = self.transaction_table.shape[0]
+    def table_asset_time_course(self):
+        """
+        This table represents time-course of asset prices. It is organized as [time, shares].
+        Every single asset that is bought is represented as a separate column.
+        Returns:
+            df:
+        """
+        t = self.table_transaction.shape[0]  # number of transactions
         container = list()
-        for i in range(t):
-            ticker = self.transaction_table.iloc[i].ticker
-            time_i = np.arange(self.transaction_table.iloc[i].date, self.current_time, (60*60*24))
-            container.append(pd.DataFrame(db.read(ticker, list(time_i)), index=time_i, columns=[ticker]))
+        for i in range(t):  # run across transactions
+            ticker = self.table_transaction.iloc[i].ticker  # get the ticker
+            # create time index from position opening until today
+            time_i = np.arange(self.table_transaction.iloc[i].date, self.current_time, (60 * 60 * 24))
+            # get ticker price for these time points
+            container.append(pd.DataFrame(db.read(ticker, list(time_i)),
+                                          index=pd.Index(time_i, name='time'),
+                                          columns=pd.Index([ticker])))
         return pd.concat(container, axis=1)
+
+    # @property
+    # def table_position_time_course(self):
+    #
+    #     # divide asset price in each column with its purchase price.
+    #     self.table_asset_time_course * NORMALIZATION
 
     @property
     def start_time(self):
