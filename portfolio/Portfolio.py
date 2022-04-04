@@ -116,15 +116,20 @@ class Portfolio:
         out.columns = out.loc['ticker'].values
         return out.apply(expander_asset_quantity).groupby(level=0, axis=1).sum()
 
-    # @property
-    # def table_time_course_asset_cost(self):
-    #     def expander_asset_cost(col: pd.Series):
-    #         """Expands transaction table across time where each time point represents the number of own assets"""
-    #     ticker = col.ticker
-    #     time_i = np.arange(col.date,  utils.today(), (60 * 60 * 24))
-    #     return pd.Series(db.read(ticker, list(time_i)),
-    #                      index=pd.Index(time_i, name='time'),
-    #                      name=ticker)
+    @property
+    def table_time_course_asset_cost(self):
+
+        def expander_asset_cost(col: pd.Series):
+            """Expands transaction table across time where each time point represents the number of own assets"""
+            ticker = col.ticker
+            time_i = np.arange(col.date,  utils.today(), (60 * 60 * 24))
+            return pd.Series(col.price,
+                             index=pd.Index(time_i, name='time'),
+                             name=ticker)
+
+        out = self.table_transaction.copy().T
+        out.columns = out.loc['ticker'].values
+        return out.apply(expander_asset_cost).groupby(level=0, axis=1).mean()
 
     @property
     def start_time(self):
