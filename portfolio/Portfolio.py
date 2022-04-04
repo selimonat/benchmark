@@ -50,6 +50,7 @@ class Position:
 class Portfolio:
     """
     Portfolio makes the book keeping of all transactions and time-course of asset prices.
+    The class instance generates first a transaction table (indexed on transaction id) from the parsed export file.
     """
     def __init__(self, df):
         """
@@ -63,34 +64,67 @@ class Portfolio:
         dates = df.date
 
         out = [Position(act, am, t, d).df for act, am, t, d in zip(actions, quantities, tickers, dates)]
-        self.table_transaction = pd.concat(out, axis=0).reset_index(drop=True)
-        # table_transaction is indexed on transaction number.
+
+        df = pd.concat(out, axis=0).reset_index(drop=True)
+        # assign a lot id to each transaction
+        self.table_transaction = utils.group_rank_id(df, 'ticker', ['ticker', 'date']).rename(columns={'rank': 'lot'})
+        self.table_transaction['lot'] = self.table_transaction['lot'] + 1
 
     @property
-    def table_asset_time_course(self):
+    def table_time_course_asset_price(self):
         """
-        This table represents time-course of asset prices. It is organized as [time, shares].
-        Every single asset that is bought is represented as a separate column.
+        This table expands the transaction table in time to represent time-course of asset prices. Every single asset
+        that is bought is represented as a separate column.
         Returns:
-            df:
+            df: organized as [time, asset-names].
         """
-        t = self.table_transaction.shape[0]  # number of transactions
-        container = list()
-        for i in range(t):  # run across transactions
-            ticker = self.table_transaction.iloc[i].ticker  # get the ticker
-            # create time index from position opening until today
-            time_i = np.arange(self.table_transaction.iloc[i].date, self.current_time, (60 * 60 * 24))
-            # get ticker price for these time points
-            container.append(pd.DataFrame(db.read(ticker, list(time_i)),
-                                          index=pd.Index(time_i, name='time'),
-                                          columns=pd.Index([ticker])))
-        return pd.concat(container, axis=1)
+
+        def expander_asset_price(col: pd.Series):
+            """Expands each row in transaction table across time where each time point represents the market price of an
+            asset.
+            """
+            ticker = col.ticker
+            time_i = np.arange(col.date,  utils.today(), (60 * 60 * 24))
+            return pd.Series(db.read(ticker, list(time_i)),
+                             index=pd.Index(time_i, name='time'),
+                             name=ticker)
+
+        #  need this intermediate variable to have correct column names after apply(), otherwise they follow the
+        #  indices of the transaction table.
+        out = self.table_transaction.copy().T
+        out.columns = out.loc['ticker'].values
+        # transaction table => Expand in time
+        return out.apply(expander_asset_price).groupby(level=0, axis=1).mean()
+
+    @property
+    def table_time_course_asset_quantity(self):
+        """
+        This table expands the transaction table to keep track of the number of assets purchased at any given time
+        point. It is aligned with the table_asset_time_course.
+        Returns:
+
+        """
+        def expander_asset_quantity(col: pd.Series):
+            """Expands transaction table across time where each time point represents the cost of assets"""
+            ticker = col.ticker
+            time_i = np.arange(col.date,  utils.today(), (60 * 60 * 24))
+            return pd.Series(1,
+                             index=pd.Index(time_i, name='time'),
+                             name=ticker)
+
+        out = self.table_transaction.copy().T
+        out.columns = out.loc['ticker'].values
+        return out.apply(expander_asset_quantity).groupby(level=0, axis=1).sum()
 
     # @property
-    # def table_position_time_course(self):
-    #
-    #     # divide asset price in each column with its purchase price.
-    #     self.table_asset_time_course * NORMALIZATION
+    # def table_time_course_asset_cost(self):
+    #     def expander_asset_cost(col: pd.Series):
+    #         """Expands transaction table across time where each time point represents the number of own assets"""
+    #     ticker = col.ticker
+    #     time_i = np.arange(col.date,  utils.today(), (60 * 60 * 24))
+    #     return pd.Series(db.read(ticker, list(time_i)),
+    #                      index=pd.Index(time_i, name='time'),
+    #                      name=ticker)
 
     @property
     def start_time(self):
