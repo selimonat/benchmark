@@ -44,6 +44,8 @@ def parse(filename):
     logger.debug('Parsed export file as follows\n' + df.to_string())
     logger.info('Parsing date column.')
     df['date'] = df['date_human'].astype(str).apply(parser.parse).astype(int) / 10 ** 9
+    logger.info('Sorting transaction table by date')
+    df.sort_values(by='date', inplace=True)
     logger.debug('Converted, now it looks like this\n' + df.to_string())
     return df
 
@@ -69,7 +71,7 @@ def column_mapper(old_colname):
 
 
 if __name__ == '__main__':
-    df2 = parse(filename='examples/portfolio_01.csv')
+    df2 = parse(filename='examples/portfolio_02.csv')
     from portfolio.Portfolio import Portfolio
     p = Portfolio(df2)
 
