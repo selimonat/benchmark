@@ -4,7 +4,7 @@ import pandas as pd
 from dateutil import parser
 import numpy as np
 
-db = Database.DB(hostname=None)
+db = Database.DB()
 
 
 class Position:
