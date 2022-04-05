@@ -161,10 +161,10 @@ class Portfolio:
     @staticmethod
     def plot(s: pd.Series):
         from uniplot import plot
-        valid_index = (s.T.isna() == False)
+        valid_index = ~s.T.isna()
         x = s.index.values[valid_index]
         y = s.T.values[valid_index]
         plot(xs=x,
              ys=y,
              lines=True,
-             width=200)
+             width=150)
