@@ -365,6 +365,20 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "uniplot"
+version = "0.5.0"
+description = "Lightweight plotting to the terminal. 4x resolution via Unicode."
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[package.dependencies]
+numpy = ">=1.15.0"
+
+[package.extras]
+dev = ["black", "mypy", "pytest (>=6.0.1)"]
+
+[[package]]
 name = "urllib3"
 version = "1.26.9"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -407,7 +421,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "a655a7d0c294cd738018cf7dc3d897bc01f8608d3f5ff37359d93c0de40f6ce0"
+content-hash = "8d64fbc86233018afb4ddcd1e3cf9bc7bed3d2c85ce9d28466bf6b7148ee4bfb"
 
 [metadata.files]
 atomicwrites = [
@@ -676,6 +690,10 @@ typer = [
 typing-extensions = [
     {file = "typing_extensions-4.1.1-py3-none-any.whl", hash = "sha256:21c85e0fe4b9a155d0799430b0ad741cdce7e359660ccbd8b530613e8df88ce2"},
     {file = "typing_extensions-4.1.1.tar.gz", hash = "sha256:1a9462dcc3347a79b1f1c0271fbe79e844580bb598bafa1ed208b94da3cdcd42"},
+]
+uniplot = [
+    {file = "uniplot-0.5.0-py3-none-any.whl", hash = "sha256:17d56520f2f44d5da09af9376c8a76c6bdc16438b92d3be1da0beae0d9c0f7e2"},
+    {file = "uniplot-0.5.0.tar.gz", hash = "sha256:3d9ea81e85546fae0ecedc72e914cfa2b1394d2554c16802fcc8d7139197882b"},
 ]
 urllib3 = [
     {file = "urllib3-1.26.9-py2.py3-none-any.whl", hash = "sha256:44ece4d53fb1706f667c9bd1c648f5469a2ec925fcf3a776667042d645472c14"},

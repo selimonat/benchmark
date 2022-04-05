@@ -132,6 +132,15 @@ class Portfolio:
         return out.apply(expander_asset_cost).groupby(level=0, axis=1).mean()
 
     @property
+    def table_time_course_asset_returns(self):
+        return self.table_time_course_asset_price/self.table_time_course_asset_cost * 100
+
+    # @property
+    # def table_time_course_portfolio_returns(self):
+    #     pass
+        # return self.table_time_course_asset_returns
+
+    @property
     def start_time(self):
         # Start time of the portfolio, typically earliest opened position
         return parser.parse("20200101T000000 UTC").timestamp()
@@ -148,3 +157,14 @@ class Portfolio:
 
     def returns(self):
         pass
+
+    @staticmethod
+    def plot(s: pd.Series):
+        from uniplot import plot
+        valid_index = (s.T.isna() == False)
+        x = s.index.values[valid_index]
+        y = s.T.values[valid_index]
+        plot(xs=x,
+             ys=y,
+             lines=True,
+             width=200)
