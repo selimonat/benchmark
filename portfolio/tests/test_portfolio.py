@@ -23,18 +23,21 @@ def test_return_integer():
 
 
 def test_ticker_column_must_be_categorical():
-
+    # dtype check.
+    # Avoid object dtypes as they are slow.
     df = parse_file(filename='./portfolio/examples/portfolio_02.csv')
     assert isinstance(df['ticker'].dtype, pd.api.types.CategoricalDtype)
 
 
 def test_action_column_must_be_categorical():
-
+    # dtype check.
+    # Avoid object dtypes as they are slow.
     df = parse_file(filename='./portfolio/examples/portfolio_02.csv')
     assert isinstance(df['action'].dtype, pd.api.types.CategoricalDtype)
 
 
 def test_no_nan_rows():
+    # There must never be any single row which is full of nans. At least one column must have a non-nan value.
     df = parse_file(filename='./portfolio/examples/portfolio_02.csv')
     p = Portfolio(df)
     logger.info(f"There should be no row with only nan values.")
@@ -42,9 +45,9 @@ def test_no_nan_rows():
 
 
 def test_lot_numbers():
+    # When the same ticker is entered N times, the max available lot number should be equal to N.
     df = parse_file(filename='./portfolio/examples/portfolio_03.csv')
     p = Portfolio(df)
-    logger.info(f"There should be no any row with only nan values.")
     a = p.table_transaction.groupby('ticker').count()['quantity'].to_frame()
     b = p.table_transaction.groupby('ticker').max()['lot'].to_frame()
     df = pd.DataFrame.join(a, b)
@@ -52,6 +55,7 @@ def test_lot_numbers():
 
 
 def test_asset_price():
+    # As the database is currently generating random numbers, this will fail.
     logger.info(f"If we randomly select an entry from the asset price time-series, it should match the value in the "
                 f"database.")
     df = parse_file(filename='./portfolio/examples/portfolio_03.csv')
