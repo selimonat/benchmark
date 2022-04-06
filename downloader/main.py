@@ -1,12 +1,8 @@
 import yfinance as yf
 import pandas as pd
-from elasticsearch import Elasticsearch, helpers
-import uuid
-import json
 import time
-from elasticsearch_dsl import Index
 import utils
-import numpy as np
+from portfolio.Database import DB
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', 500)
@@ -15,33 +11,16 @@ pd.set_option('display.width', 1000)
 
 logger = utils.get_logger("downloader")
 
-ES_HOST = "localhost:9200"
-
-
-def setup_es(index_name, client):
-    """Creates indices with INDEX_NAME using elasticsearch CLIENT"""
-
-    logger.info(f"Setting up index {index_name} on {client.info()['cluster_name']}.")
-    index = Index(index_name, client)
-    index.settings(
-        number_of_shards=1,
-        number_of_replicas=1, )
-    # ignore already exists error
-    index.create(ignore=400)
-
 
 def main():
     """
     Saves historical values fetched from Yahoo Finance to a local Elastic cluster.
     """
-
-    logger.info('Creating an ES client.')
-    client_es = Elasticsearch("http://elastic:changeme@" + ES_HOST)
+    db = DB()
 
     # create indices if they are not already created
     for ind in ['time-series']:
-        if not client_es.indices.exists(index=ind):
-            setup_es(ind, client_es)
+            db.setup_es_index(ind)
 
     tickers = utils.get_all_tickers()
     logger.info(f'Found these tickers:\n{tickers.to_json()}')
@@ -49,9 +28,16 @@ def main():
     for ticker in tickers:
 
         logger.info(f"working on ticker {ticker}.")
-        # Get ticker's balance sheet from Yahoo Finance
+        # get ticker from ES.
+
+        # find the maximum value and use the next day as the start argument
+        # if exist
+        # start  =
+        # else
+        # start = '1900-01-01'
         t = yf.Ticker(ticker)
-        df = t.history(period='max', interval='1d')
+
+        df = t.history(start=start, interval='1d')
         # each row is a time point, here a day.
         df = df["Close"]  # take only close. alternative could be open, high, low
 
@@ -79,8 +65,9 @@ def main():
                 response = helpers.bulk(client_es, actions)
                 logger.info(f"Bulk sending data to ES, got this {response}.")
 
-            except:
-                logger.error(f"Bulk sending data to ES failed..")
+            # db.write(df)
+            # butun bu asagidaki DB'ye gidiyor.
+
 
         # Sleep a bit so that Yahoo doesn't black list us
         logger.info(f"Will wait a bit before the next call")
