@@ -4,13 +4,13 @@ from diagrams.programming.language import Python
 from diagrams.generic.storage import Storage
 
 
-with Diagram("Event processing", show=False):
+with Diagram("", show=False):
     connector = Python("DB connector")
-    portfolio = Python("Portfolio")
-    parser = Python("Parser")
-    file = Storage("Portfolio Export")
+    portfolio = Python("Portfolio Backend")
+    parser = Python("Export File Parser")
+    file = Storage("Portfolio File Export")
     with Cluster("Services"):
-        downloader = Python("Downloader")
+        downloader = Python("Data Downloader")
         es = Elasticsearch("ES")
         kibana = Kibana('Monitoring')
 
