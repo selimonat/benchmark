@@ -96,3 +96,16 @@ def test_returned_shape():
     print(f"new size: {final_size}, should be {old_size+to_be_added}")
     time.sleep(5)
     assert final_size == (old_size + to_be_added)
+
+
+def test_equality_of_time_points():
+    indices = [1599696000, 1599782400, 1600041600, 1600128000]
+    df = db.read(ticker='AAPL', date=indices, output_format='series')
+    assert np.all(df.index == indices)
+
+
+def test_no_day_should_return_empty():
+    # we just add 1 to above time indices to break the match in the database.
+    indices = [1599696001, 1599782401, 1600041601, 1600128001]
+    df = db.read(ticker='AAPL', date=indices)
+    assert df.empty
