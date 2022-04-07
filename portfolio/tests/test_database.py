@@ -75,8 +75,8 @@ def test_read_one_line_series():
 
 
 def test_returned_shape():
-    size_ = np.ceil(np.random.random(size=1) * 100)
-    time_point = np.ceil(np.random.random(size=int(size_[0])) * 100000)
+    size_ = np.ceil(np.random.random(size=1) * 100)+1
+    time_point = np.ceil(np.random.random(size=int(size_[0])) * 100000)+1
     value = np.random.random(size=int(size_[0])) * 100000
     ticker = 'AAPL__'
     s = pd.Series(value, name=ticker, index=pd.Index(data=time_point, name='date'))
