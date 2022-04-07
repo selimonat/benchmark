@@ -1,0 +1,1 @@
+Here are stored different example portfolios that are used for testing purposes.
