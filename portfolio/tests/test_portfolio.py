@@ -2,14 +2,13 @@ from portfolio import utils
 from portfolio.Parser import parse_file
 from dateutil.parser import parse
 import pandas as pd
-from portfolio.Portfolio import Portfolio
+from portfolio.Portfolio import Portfolio, Position
 from portfolio import Database
 
 SECONDS_IN_A_DAY = (60*60*24)
 logger = utils.get_logger(__name__)
 
-
-db = Database.DB(hostname=None)
+db = Database.DB()
 
 
 def test_return_integer():
@@ -34,6 +33,15 @@ def test_action_column_must_be_categorical():
     # Avoid object dtypes as they are slow.
     df = parse_file(filename='./portfolio/examples/portfolio_02.csv')
     assert isinstance(df['action'].dtype, pd.api.types.CategoricalDtype)
+
+
+def test_position_data_types():
+    pos = Position('buy', 4, 'AAPL', 1557014400)
+    assert(type(pos.action)) == str
+    assert(type(pos.quantity)) in [float, int]
+    assert(type(pos.ticker)) == str
+    assert(type(pos.date)) == int
+    assert(type(pos.price)) == float
 
 
 def test_no_nan_rows():
@@ -65,7 +73,6 @@ def test_asset_price():
     assert db.read(out['level_0'].values[0], out['time'].to_list()) == out[0]
 
 #  TODO: asset return at purchase date must be 100%
-#  TODO: asset time course table must have as many columns as the number of shares.
 #  TODO: Transaction table must have indices from 0 to the shape[0] of the table.
 #  TODO: Two times the same ticker must result in two different columns in the time-course table.
 #  TODO: When same ticker added twice the asset price must be the mean of them
