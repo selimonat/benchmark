@@ -116,10 +116,13 @@ class Portfolio:
         def expander_asset_quantity(col: pd.Series):
             """Expands transaction table across time where each time point represents the cost of assets"""
             ticker = col.ticker
-            # time_i = np.arange(col.date, utils.today(), (60 * 60 * 24))
-            return pd.Series(1,
-                             index=pd.Index(self.time_line, name='time'),
-                             name=ticker)
+            # This should be 0 before the purchase date.
+            s = pd.Series(0,
+                          index=pd.Index(self.time_line, name='time'),
+                          name=ticker)
+
+            s.loc[s.index >= col.date] = col.quantity
+            return s
 
         out = self.table_transaction.copy().T
         out.columns = out.loc['ticker'].values
@@ -169,7 +172,7 @@ class Portfolio:
     def plot(s: pd.Series):
         from uniplot import plot
         valid_index = ~s.T.isna()
-        x = s.index.values[valid_index]
+        x = s.index.values[valid_index] / (60*60*24*365) + 1970
         y = s.T.values[valid_index]
         plot(xs=x,
              ys=y,
