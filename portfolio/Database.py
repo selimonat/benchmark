@@ -11,7 +11,9 @@ import json
 random.seed("die kartoffeln")
 
 
-# TODO: exceptions where ticker doesn't exist must be handled.
+# TODO: exceptions where ticker doesn't exist must be handled. This requires a call to ES asking for existence of a
+#  ticker. If yes, things should normally proceed and otherwise either fallback must be used or the exception in
+#  db.read() must be handled.
 
 
 class DB:
@@ -70,6 +72,8 @@ class DB:
         try:
             df = pd.DataFrame([r['_source'] for r in res])
             df.set_index('date', inplace=True)
+            df.index.name = 'date'
+            df.columns.name = ticker
             # filter the requested time points
             if date is not None:
                 df = df.loc[df.index.isin(date)]
@@ -128,7 +132,7 @@ class DB:
         if type(data) is pd.DataFrame:  # convert to Series
             self.logger.info("DataFrame received, will convert it to Series")
             # preprocess
-            ticker = data['ticker'].iloc[0]
+            ticker = data.columns.name
             s = data['Close']
             s.name = ticker
             s.index.name = 'date'
