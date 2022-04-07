@@ -2,6 +2,7 @@ import pandas as pd
 from portfolio.Database import DB
 import time
 import numpy as np
+from portfolio import utils
 
 db = DB()
 # a new index name
@@ -99,8 +100,11 @@ def test_returned_shape():
 
 
 def test_equality_of_time_points():
-    indices = [1599696000, 1599782400, 1600041600, 1600128000]
-    df = db.read(ticker='AAPL', date=indices, output_format='series')
+    start_time = 1599696000
+    indices = np.arange(start_time, utils.today(), (60 * 60 * 24), dtype=int)
+    df = db.read(ticker='MSFT>', date=indices, output_format='series')
+    #  TODO: should the database return not found time points with Nans, or should only return the ones that are found?
+    # Until this question is answered this test will fail, the next one is a related question.
     assert np.all(df.index == indices)
 
 
