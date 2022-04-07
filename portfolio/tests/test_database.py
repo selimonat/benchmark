@@ -93,6 +93,6 @@ def test_returned_shape():
     time.sleep(5)
     df_final = db.read(ticker=ticker, output_format='raw', index_name=test_index)
     final_size = df_final.shape[0]
-    print(f"previous size: {final_size}")
+    print(f"new size: {final_size}, should be {old_size+to_be_added}")
     time.sleep(5)
     assert final_size == (old_size + to_be_added)
