@@ -3,6 +3,7 @@ from portfolio import Database
 import pandas as pd
 from dateutil import parser
 import numpy as np
+from typing import SupportsFloat
 
 db = Database.DB()
 
@@ -13,6 +14,7 @@ class Position:
     it adds one. Represents the features associated with a single position.
     """
     def __init__(self, action: str, quantity: int, ticker: str, date: int):
+        self.logger = utils.get_logger(__name__)
         self.action = action
         self.quantity = quantity
         self.ticker = ticker
@@ -27,24 +29,21 @@ class Position:
         """
         return pd.DataFrame.from_dict(self.__dict__)
 
-    @property
-    def value_yesterday(self) -> list:
-        """
-        Returns:
-            float: Value of the position yesterday.
-        """
-        return self.value_at(utils.today())
-
-    def value_at(self, date: list) -> list:
+    def value_at(self, date: list) -> SupportsFloat:
         """
         Value at an arbitrary date.
         Args:
             date: epoch seconds
 
         Returns:
-            list: The value of the position
+            list: The value of the position. Returns NaN if no value.
         """
-        return db.read(self.ticker, date=date)
+        out = db.read(ticker=self.ticker, date=date, output_format='series')
+        if out.shape[0] != 0:
+            return out.values
+        else:
+            self.logger.info(f"No value found for {self.ticker} at {self.date}, returning NaN")
+            return np.NaN
 
 
 class Portfolio:
