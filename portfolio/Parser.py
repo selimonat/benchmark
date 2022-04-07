@@ -52,6 +52,8 @@ def parse_file(filename):
     df['action'] = df['action'].astype("category")
     df['ticker'] = df['ticker'].astype("category")
     df['price'] = df['price'].astype(float)
+    # TODO: validity check: if the returned value is NaN, then it is possible that this was a weekend or so. which
+    #  would lead NaN to be returned for the price.
     return df
 
 
