@@ -45,6 +45,12 @@ def test_position_data_types():
     assert pd.api.types.is_float_dtype(pos.df.price)
 
 
+def test_is_index_sorted_in_time_course_table():
+    df = parse_file(filename='../examples/portfolio_01.csv')
+    p = Portfolio(df)
+    assert p.table_time_course_asset_price.index.is_monotonic
+
+
 def test_no_nan_rows_in_time_course_tables():
     # There must never be any single row which is full of nans. At least one column must have a non-nan value.
     df = parse_file(filename='../examples/portfolio_01.csv')
@@ -73,6 +79,16 @@ def test_asset_price():
     out = out.loc[out.isna() == False].sample(1).reset_index()
     s = db.read(out['level_0'].values[0], out['date'].to_list(), output_format='series')
     assert s.iloc[0] == out[0].values[0]
+
+
+def test_time_course_tables():
+    #  simple test to check if time-course tables run at all.
+    df = parse_file(filename='../examples/portfolio_03.csv')
+    p = Portfolio(df)
+    assert type(p.table_time_course_asset_price) == pd.DataFrame
+    assert type(p.table_time_course_asset_cost) == pd.DataFrame
+    assert type(p.table_time_course_asset_returns) == pd.DataFrame
+    assert type(p.table_time_course_asset_quantity) == pd.DataFrame
 
 #  TODO: asset return at purchase date must be 100%
 #  TODO: Transaction table must have indices from 0 to the shape[0] of the table.
