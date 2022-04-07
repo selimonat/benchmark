@@ -4,8 +4,9 @@ from dateutil.parser import parse
 import pandas as pd
 from portfolio.Portfolio import Portfolio, Position
 from portfolio import Database
+import numpy as np
 
-SECONDS_IN_A_DAY = (60*60*24)
+SECONDS_IN_A_DAY = (60 * 60 * 24)
 logger = utils.get_logger(__name__)
 
 db = Database.DB()
@@ -89,6 +90,35 @@ def test_time_course_tables():
     assert type(p.table_time_course_asset_cost) == pd.DataFrame
     assert type(p.table_time_course_asset_returns) == pd.DataFrame
     assert type(p.table_time_course_asset_quantity) == pd.DataFrame
+
+
+def test_return_at_purchase_date():
+    # return at purchase date must be 100%
+    df = parse_file(filename='../examples/portfolio_01.csv')
+    p = Portfolio(df)
+    for i in p.table_transaction[["ticker", "date"]].to_dict(orient='records'):
+        print(i)
+        df = p.table_time_course_asset_returns
+        assert df.loc[i['date'], i['ticker']] == 100.
+
+
+def test_check_quantity_at_date_of_purchase():
+    df = parse_file(filename='../examples/portfolio_03.csv')
+    p = Portfolio(df)
+    df = p.table_time_course_asset_quantity
+    for ticker in p.table_transaction["ticker"].unique():
+        # transaction dates
+        rows = p.table_transaction['ticker'] == ticker
+        transaction_dates = p.table_transaction.loc[rows, 'date']
+        q_time_course = df.loc[transaction_dates, ticker]
+
+        q_transaction_table = p.table_transaction.loc[rows, 'quantity'].cumsum()
+        assert np.all(q_transaction_table.values == q_time_course.values)
+# def test_check_quantity_at_today():
+#     # The amount of stocks owned must be +s of buys and -s of sells
+#     df = parse_file(filename='../examples/portfolio_03.csv')
+#     p = Portfolio(df)
+#     1
 
 #  TODO: asset return at purchase date must be 100%
 #  TODO: Transaction table must have indices from 0 to the shape[0] of the table.
