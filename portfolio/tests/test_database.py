@@ -36,6 +36,13 @@ def test_converter_required_columns():
     assert set(df.reset_index().columns) == {'date', 'Close', 'ticker'}
 
 
+def test_conversion_of_empty_dataframe():
+    # We choose on purpose an impossible date, which will return an empty df,
+    # converting that df to series should return an empty series.
+    df = db.read(ticker='AAPL', date=[0])
+    assert type(db.convert(df)) == pd.Series
+
+
 def test_write_one_line():
     """
     Writes a new document to ES and reads it. Both dataframes must be equal.
@@ -68,9 +75,9 @@ def test_read_one_line_series():
 
 
 def test_returned_shape():
-    size_ = np.ceil(np.random.random(size=1)*100)
-    time_point = np.ceil(np.random.random(size=int(size_[0]))*100000)
-    value = np.random.random(size=int(size_[0]))*100000
+    size_ = np.ceil(np.random.random(size=1) * 100)
+    time_point = np.ceil(np.random.random(size=int(size_[0])) * 100000)
+    value = np.random.random(size=int(size_[0])) * 100000
     ticker = 'AAPL__'
     s = pd.Series(value, name=ticker, index=pd.Index(data=time_point, name='date'))
     df_new = db.convert(s)
