@@ -94,8 +94,8 @@ class Portfolio:
             asset.
             """
             ticker = col.ticker
-            time_i = np.arange(col.date, utils.today(), (60 * 60 * 24))
-            return db.read(ticker, date=time_i, output_format='series')
+            #  TODO: it is not guaranteed that the returned data will be perfectly indexed on self.time_line.
+            return db.read(ticker, date=self.time_line, output_format='series')
 
         #  need this intermediate variable to have correct column names after apply(), otherwise they follow the
         #  indices of the transaction table.
@@ -116,9 +116,9 @@ class Portfolio:
         def expander_asset_quantity(col: pd.Series):
             """Expands transaction table across time where each time point represents the cost of assets"""
             ticker = col.ticker
-            time_i = np.arange(col.date, utils.today(), (60 * 60 * 24))
+            # time_i = np.arange(col.date, utils.today(), (60 * 60 * 24))
             return pd.Series(1,
-                             index=pd.Index(time_i, name='time'),
+                             index=pd.Index(self.time_line, name='time'),
                              name=ticker)
 
         out = self.table_transaction.copy().T
@@ -130,9 +130,8 @@ class Portfolio:
         def expander_asset_cost(col: pd.Series):
             """Expands transaction table across time where each time point represents the number of own assets"""
             ticker = col.ticker
-            time_i = np.arange(col.date, utils.today(), (60 * 60 * 24))
             return pd.Series(col.price,
-                             index=pd.Index(time_i, name='time'),
+                             index=pd.Index(self.time_line, name='time'),
                              name=ticker)
 
         out = self.table_transaction.copy().T
@@ -151,7 +150,7 @@ class Portfolio:
     @property
     def start_time(self):
         # Start time of the portfolio, typically earliest opened position
-        return parser.parse("20200101T000000 UTC").timestamp()
+        return self.table_transaction.date.min()
 
     @property
     def current_time(self):
