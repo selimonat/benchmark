@@ -4,7 +4,6 @@ from portfolio.Portfolio import Portfolio
 app = typer.Typer(add_completion=False)
 
 
-@app.command()
 def parse_export(filename: str):
     """
     Parse a personal portfolio .csv file (e.g. export from Yahoo Finance) to a transaction table.
@@ -43,6 +42,8 @@ def get_time_course(filename: str):
     df = Parser.parse_file(filename)
     p = Portfolio(df)
     print(p.table_time_course_asset_price.tail(10))
+
+#  TODO: plot ticker
 
 
 if __name__ == "__main__":

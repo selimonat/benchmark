@@ -50,6 +50,7 @@ def parse_file(filename):
     logger.info('Adjusting datatypes, avoiding objects.')
     df['action'] = df['action'].astype("category")
     df['ticker'] = df['ticker'].astype("category")
+    df['price'] = df['price'].astype(float)
     return df
 
 

@@ -24,29 +24,30 @@ def test_return_integer():
 def test_ticker_column_must_be_categorical():
     # dtype check.
     # Avoid object dtypes as they are slow.
-    df = parse_file(filename='./portfolio/examples/portfolio_02.csv')
+    df = parse_file(filename='../examples/portfolio_02.csv')
     assert isinstance(df['ticker'].dtype, pd.api.types.CategoricalDtype)
 
 
 def test_action_column_must_be_categorical():
-    # dtype check.
+    # dtype check for the parsed transaction table.
     # Avoid object dtypes as they are slow.
-    df = parse_file(filename='./portfolio/examples/portfolio_02.csv')
-    assert isinstance(df['action'].dtype, pd.api.types.CategoricalDtype)
+    df = parse_file(filename='../examples/portfolio_02.csv')
+    assert pd.api.types.is_categorical_dtype(df.action)
+    assert pd.api.types.is_categorical_dtype(df.ticker)
 
 
 def test_position_data_types():
-    pos = Position('buy', 4, 'AAPL', 1557014400)
-    assert(type(pos.action)) == str
-    assert(type(pos.quantity)) in [float, int]
-    assert(type(pos.ticker)) == str
-    assert(type(pos.date)) == int
-    assert(type(pos.price)) == float
+    pos = Position('buy', 4, 'AAPL', 377481600)
+    assert pd.api.types.is_categorical_dtype(pos.df.action)
+    assert pd.api.types.is_categorical_dtype(pos.df.ticker)
+    assert pd.api.types.is_float_dtype(pos.df.quantity) or pd.api.types.is_int64_dtype(pos.df.quantity)
+    assert pd.api.types.is_int64_dtype(pos.df.date)
+    assert pd.api.types.is_float_dtype(pos.df.price)
 
 
-def test_no_nan_rows():
+def test_no_nan_rows_in_time_course_tables():
     # There must never be any single row which is full of nans. At least one column must have a non-nan value.
-    df = parse_file(filename='./portfolio/examples/portfolio_02.csv')
+    df = parse_file(filename='../examples/portfolio_01.csv')
     p = Portfolio(df)
     logger.info(f"There should be no row with only nan values.")
     assert p.table_time_course_asset_price.isna().sum(axis=1).max() < p.table_time_course_asset_price.shape[1]
@@ -54,7 +55,7 @@ def test_no_nan_rows():
 
 def test_lot_numbers():
     # When the same ticker is entered N times, the max available lot number should be equal to N.
-    df = parse_file(filename='./portfolio/examples/portfolio_03.csv')
+    df = parse_file(filename='../examples/portfolio_03.csv')
     p = Portfolio(df)
     a = p.table_transaction.groupby('ticker').count()['quantity'].to_frame()
     b = p.table_transaction.groupby('ticker').max()['lot'].to_frame()
@@ -66,11 +67,12 @@ def test_asset_price():
     # As the database is currently generating random numbers, this will fail.
     logger.info(f"If we randomly select an entry from the asset price time-series, it should match the value in the "
                 f"database.")
-    df = parse_file(filename='./portfolio/examples/portfolio_03.csv')
+    df = parse_file(filename='../examples/portfolio_03.csv')
     p = Portfolio(df)
     out = p.table_time_course_asset_price.unstack(-1)
     out = out.loc[out.isna() == False].sample(1).reset_index()
-    assert db.read(out['level_0'].values[0], out['time'].to_list()) == out[0]
+    s = db.read(out['level_0'].values[0], out['date'].to_list(), output_format='series')
+    assert s.iloc[0] == out[0].values[0]
 
 #  TODO: asset return at purchase date must be 100%
 #  TODO: Transaction table must have indices from 0 to the shape[0] of the table.

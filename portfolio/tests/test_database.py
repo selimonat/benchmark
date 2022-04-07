@@ -86,13 +86,13 @@ def test_returned_shape():
     # I think the db calls are not blocking, hence I need sleep statements otherwise the added table do not come back
     # when I read.
     df_old = db.read(ticker=ticker, output_format='raw', index_name=test_index)
-    time.sleep(3)
+    time.sleep(5)
     old_size = df_old.shape[0]
     print(f"previous size: {old_size}")
     db.write(index_name=test_index, df=df_new)
-    time.sleep(3)
+    time.sleep(5)
     df_final = db.read(ticker=ticker, output_format='raw', index_name=test_index)
     final_size = df_final.shape[0]
     print(f"previous size: {final_size}")
-    time.sleep(3)
+    time.sleep(5)
     assert final_size == (old_size + to_be_added)

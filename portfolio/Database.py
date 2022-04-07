@@ -71,6 +71,11 @@ class DB:
         # parse the raw results to pandas DF
         try:
             df = pd.DataFrame([r['_source'] for r in res])
+            # dtype conversions:
+            df.date = df.date.astype(int)
+            df.Close = df.Close.astype(float)
+            df.ticker = df.ticker.astype("category")
+
             df.set_index('date', inplace=True)
             df.index.name = 'date'
             df.columns.name = ticker
@@ -144,6 +149,9 @@ class DB:
             df_ = data.to_frame()
             df_.rename(columns={ticker: 'Close'}, inplace=True)
             df_['ticker'] = ticker
+            df_.index = df_.index.astype(int)
+            df_.Close = df_.Close.astype(float)
+            df_.ticker = df_.ticker.astype("category")
             return df_
 
     def random_read(self, ticker: str, date: list) -> list:
@@ -161,9 +169,3 @@ class DB:
         self.logger.debug(f'Reading {ticker} value at {len(date)} different values (min: {min(date)}, max: {max(date)})'
                           f' from random number generator.')
         return [random.random() for _ in date]
-
-
-if __name__ is '__main__':
-    db = DB()
-    # df = db.read(ticker='AAPL', date=[1648598400])
-    df_ = db.read(ticker='AAPL', output_format='series')
