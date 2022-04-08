@@ -2,6 +2,7 @@
 import pandas as pd
 import portfolio.utils as utils
 from dateutil import parser
+from typing import AnyStr
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', 500)
@@ -19,14 +20,19 @@ mapping = {'price': ['purchase price'],
            }
 
 
-def parse_file(filename):
+def parse_file(filename: AnyStr) -> pd.DataFrame:
     """
     Extracts 5 columns from the export: price, action, quantity, ticker and date. If action not present, assumes buy.
     Args:
         filename:
 
     Returns:
-        df: parsed data structure as pandas dataframe.
+        df: parsed data structure as pandas dataframe with the following structure:
+            df.index (categorical):
+            df.action (categorical):
+            df.price (float):
+            df.quantity (float):
+            df.ticker (categorical):
     """
     df = pd.read_csv(filename)
     # rename columns
@@ -38,9 +44,16 @@ def parse_file(filename):
         logger.info('Not all wanted columns there.')
         missing = set(mapping) - set(df.columns)
         logger.info(f'Missing is {missing}')
+        # Column completion:
         if missing == set(('action',)):
             logger.info(f'Assuming missing actions as buy.')
             df['action'] = 'buy'
+
+        if (set(mapping) - set(df.columns)) == set():
+            logger.info("No more missing columns")
+            # TODO: Test if the exception is correctly raised.
+            raise Exception(f'Cannot continue with missing incomplete columns list:\n {df.columns}')
+
     logger.debug('Parsed export file as follows\n' + df.to_string())
     logger.info('Parsing date column.')
     df['date'] = df['date_human'].astype(str).apply(parser.parse).astype(int) / 10 ** 9
