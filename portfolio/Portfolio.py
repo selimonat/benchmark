@@ -177,4 +177,5 @@ class Portfolio:
         plot(xs=x,
              ys=y,
              lines=True,
+             x_unit='date',
              width=150)
