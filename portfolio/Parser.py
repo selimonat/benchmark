@@ -2,8 +2,9 @@
 import pandas as pd
 import portfolio.utils as utils
 from dateutil import parser
-from typing import AnyStr, List
+from typing import AnyStr, List, Dict
 from portfolio.Position import Position
+from collections import defaultdict
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', 500)
@@ -13,8 +14,7 @@ pd.set_option('display.width', 1000)
 # used to map all column names listed in values, to their keys {target column name: export file column name}.
 # the column names listed as values are encountered on the .csv file and then mapped to final column names (shown in
 # keys).
-mapping = {'price': ['purchase price'],
-           'action': ['position'],
+mapping = {'action': ['position'],
            'quantity': ['quantity', 'amount'],
            'ticker': ['symbol', 'ticker'],
            'date_human': ['trade date', 'purchase date']
@@ -29,6 +29,16 @@ class PortfolioParser:
         self.df = self.parse_file(self.filename)
 
     @property
+    def grouped_positions(self) -> Dict:
+        """
+        Returns: Returns parsed .csv export file as a dict organized as {ticker:[positions]}.
+        """
+        d = defaultdict(list)
+        for pos in self.positions:
+            d[pos.ticker].append(pos)
+        return dict(d)
+
+    @property
     def positions(self) -> List:
         """
         Returns: Returns parsed .csv export file as a list of positions.
@@ -40,7 +50,7 @@ class PortfolioParser:
 
     def parse_file(self, filename: AnyStr) -> pd.DataFrame:
         """
-        Extracts 5 columns from the export: price, action, quantity, ticker and date. If action not present, assumes buy.
+        Extracts 5 columns from the export: current_price, action, quantity, ticker and date. If action not present, assumes buy.
         Args:
             filename:
 
@@ -48,7 +58,6 @@ class PortfolioParser:
             df: parsed data structure as pandas dataframe with the following structure:
                 df.index (categorical):
                 df.action (categorical):
-                df.price (float):
                 df.quantity (float):
                 df.ticker (categorical):
         """
@@ -63,7 +72,7 @@ class PortfolioParser:
             missing = set(mapping) - set(df.columns)
             self.logger.info(f'Missing is {missing}')
             # Column completion:
-            if missing == set(('action',)):
+            if 'action' in missing:
                 self.logger.info(f'Assuming missing actions as buy.')
                 df['action'] = 'buy'
 
@@ -82,15 +91,14 @@ class PortfolioParser:
         self.logger.info('Adjusting datatypes, avoiding objects.')
         df['action'] = df['action'].astype("category")
         df['ticker'] = df['ticker'].astype("category")
-        df['price'] = df['price'].astype(float)
         # TODO: validity check: if the returned value is NaN, then it is possible that this was a weekend or so. which
-        #  would lead NaN to be returned for the price.
+        #  would lead NaN to be returned for the current_price.
         return df
 
     def column_mapper(self, old_colname):
         """
         Maps column names as specified in the mapping variable. Standardize column names by mapping similar ones to the
-        same one e.g. Purchase Price -> price; buy Price -> price, etc.
+        same one.
         It is called by the rename method of pandas.
         Args:
             old_colname:
