@@ -36,7 +36,7 @@ class Position:
         out.quantity = out.quantity.astype(int)
         out.ticker = out.ticker.astype('category')
         out.date = out.date.astype(int)
-        out.price = out.price.astype(float)
+        out.current_price = out.current_price.astype(float)
         return out
 
     def value_at(self, date: list) -> SupportsFloat:
