@@ -1,5 +1,5 @@
 import typer
-from portfolio import Parser as Parser
+from portfolio.Parser import PortfolioParser
 from portfolio.Portfolio import Portfolio
 app = typer.Typer(add_completion=False)
 
@@ -12,7 +12,7 @@ def parse_export(filename: str):
     Returns:
         Transaction table.
     """
-    df = Parser.parse_file(filename)
+    df = PortfolioParser(filename).df
     print(df)
 
 
@@ -23,9 +23,9 @@ def get_transactions(filename: str):
     Args:
         filename:
     Returns:
-        df: with 5 columns ticker, date, price, quantity, action
+        df: with 5 columns ticker, date, current_price, quantity, action
     """
-    df = Parser.parse_file(filename)
+    df = PortfolioParser(filename).df
     p = Portfolio(df)
     print(p.table_transaction)
 
