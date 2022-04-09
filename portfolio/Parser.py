@@ -34,9 +34,8 @@ class PortfolioParser:
         Returns: Returns parsed .csv export file as a list of positions.
         """
         def callback(col) -> Position:
-            return Position(col.action, col.quantity, col.ticker, col.date)
+            return Position(col.action, int(col.quantity), col.ticker, int(col.date))
 
-        # noinspection PyTypeChecker
         return self.df.T.apply(callback).to_list()
 
     def parse_file(self, filename: AnyStr) -> pd.DataFrame:
