@@ -11,18 +11,18 @@ class Position:
     closed, how many shares have been sold and the date of purchase or close.
     """
 
-    def __init__(self, action: AnyStr, quantity: SupportsInt, ticker: AnyStr, date: SupportsInt):
+    def __init__(self, action: AnyStr, quantity: int, ticker: AnyStr, date: int):
         self.logger = utils.get_logger(__name__)
         self.action = action
         self.quantity = quantity
         self.ticker = ticker
         self.date = date
         self.commission = 0
-        self.price = self.value_at([self.date])
+        self.current_price = self.value_at([self.date])
 
     def __str__(self):
-        return f"{self.action} of {self.quantity} shares of {self.ticker} for {self.price} at {self.date}. It has " \
-               f"been paid a commision of {self.commission} for this position."
+        return f"{self.action} of {self.quantity} shares of {self.ticker} for {self.current_price} at {self.date}.  " \
+               f"It has been paid a commision of {self.commission} for this position."
 
     @property
     def df(self) -> pd.DataFrame:
@@ -33,7 +33,7 @@ class Position:
         out = pd.DataFrame.from_dict([self.__dict__])
         # conversion of data types
         out.action = out.action.astype('category')
-        out.quantity = out.quantity.astype(float)
+        out.quantity = out.quantity.astype(int)
         out.ticker = out.ticker.astype('category')
         out.date = out.date.astype(int)
         out.price = out.price.astype(float)
