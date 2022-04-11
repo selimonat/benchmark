@@ -86,7 +86,7 @@ def test_parameters_for_bought_one_share_two_lots():
     current_value = 110
     t = Ticker([pos1, pos2], value=[current_value])
 
-    cost = (cost1+cost2)/2
+    cost = (cost1 + cost2) / 2
     quantity = quantity1 + quantity2
     assert isclose(t.returns.values, 100 * (current_value - cost) / cost)
     assert t.total_shares == quantity1 + quantity2
@@ -96,3 +96,24 @@ def test_parameters_for_bought_one_share_two_lots():
     assert t.current_open_shares == quantity
     assert t.current_sold_shares == 0
 
+
+def test_parameters_for_bought_different_shares_two_lots():
+    quantity1 = 10
+    cost1 = 110
+    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today(), cost=cost1)
+    quantity2 = 1
+    cost2 = 100
+    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=utils.today(), cost=cost2)
+    current_value = 110
+    t = Ticker([pos1, pos2], value=[current_value])
+
+    quantity = quantity1 + quantity2
+    cost = cost1 * quantity1 / quantity + cost2 * quantity2 / quantity
+
+    assert isclose(t.returns.values, 100 * (current_value - cost) / cost)
+    assert t.total_shares == quantity1 + quantity2
+    assert t.profit_loss.sum(axis=1).values == 0
+    assert t.unrealized_gain.values == (current_value*quantity - (cost1*quantity1 + cost2*quantity2))
+    assert t.total_invested.values == (cost1*quantity1 + cost2*quantity2)
+    assert t.current_open_shares == quantity
+    assert t.current_sold_shares == 0
