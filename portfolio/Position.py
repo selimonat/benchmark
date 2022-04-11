@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import SupportsFloat, AnyStr, SupportsInt
+from typing import SupportsFloat, AnyStr, Optional
 from portfolio import Database
 from portfolio import utils
 db = Database.DB()
@@ -12,14 +12,27 @@ class Position:
     the database.
     """
 
-    def __init__(self, action: AnyStr, quantity: int, ticker: AnyStr, date: int):
+    def __init__(self,
+                 action: AnyStr,
+                 quantity: int,
+                 ticker: AnyStr,
+                 date: int,
+                 cost: Optional[float] = None,
+                 commision: Optional[float] = None):
+
         self.logger = utils.get_logger(__name__)
         self.action = action
         self.quantity = quantity
         self.ticker = ticker
         self.date = date
-        self.commission = 0
-        self.cost = self.value_at([self.date])
+        if commision is None:
+            self.commission = 0
+        else:
+            self.commission = commision
+        if cost is None:
+            self.cost = self.value_at([self.date])
+        else:
+            self.cost = cost
 
     def __str__(self):
         return f"{self.action} {self.quantity} {self.ticker} {self.cost} {self.date}.  "
