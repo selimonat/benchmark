@@ -33,9 +33,13 @@ class PortfolioParser:
         """
         Returns: Returns parsed .csv export file as a dict organized as {ticker:[positions]}.
         """
-        d = defaultdict(list)
+        d_ = defaultdict(list)
         for pos in self.positions:
-            d[pos.ticker].append(pos)
+            d_[pos.ticker].append(pos)
+        # convert values to DataFrames
+        d = defaultdict(list)
+        for ticker in d_.keys():
+            d[ticker] = pd.concat([pos.df for pos in d_[ticker]])
         return dict(d)
 
     @property

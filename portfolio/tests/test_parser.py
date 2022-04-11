@@ -30,7 +30,8 @@ def test_position_dict_output():
     filename = '../examples/portfolio_05.csv'
     pp = PortfolioParser(filename)
     assert type(pp.grouped_positions) == dict
-    assert len(np.unique([pos.ticker for pos in pp.grouped_positions['FB']])) == 1
+    ticker = list(pp.grouped_positions.keys())[0]
+    assert type(pp.grouped_positions[ticker]) == pd.DataFrame
 
 
 def test_position_presence_of_sell_action():
