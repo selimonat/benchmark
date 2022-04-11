@@ -58,6 +58,10 @@ class DB:
         Returns:
             series: A pandas Series named "price" showing time-course of a ticker, indexed on time.
         TODO: one can directly ask for ES the requested dates rather than filtering them after the call.
+        TODO: it is generally a better approach to have the output data set to be indexed or at least to contain the
+              required date range. Currently when the requested date is not stored in the db, the returned data
+              structure is empty, does not contain any trace of the requested date. It would be better to have the
+              index stored but to contain nan values.
         """
         q = {"query": {"match": {"ticker": ticker}}}
 
