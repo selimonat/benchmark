@@ -4,7 +4,7 @@ from uniplot import plot
 # TODO: make it possible to plot to string and use it as a debugger.
 
 
-def console_plot(s: pd.Series, remove_nans=True):
+def console_plot(s: pd.Series, remove_nans=False):
     """
     Simple console plotter
     Args:
