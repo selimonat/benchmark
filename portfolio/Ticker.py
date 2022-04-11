@@ -8,22 +8,6 @@ import numpy as np
 db = DB()
 
 
-class ShareCounter:
-    def __init__(self):
-        self.shares = list()
-
-    def add_new(self, n=1):
-        # adds n new shares.
-        [self.shares.append(len(self.shares) + 1) for _ in range(n)]
-
-    def remove_old(self, n=1):
-        # removes n old shares.
-        [self.shares.pop(0) for _ in range(n)]
-
-    def __call__(self):
-        return self.shares
-
-
 class Ticker:
     """
     An ensemble of positions under the same ticker label.
@@ -97,5 +81,14 @@ class Ticker:
                          dtype=int)
 
     @property
-    def open_shares(self):
+    def current_open_shares(self):
         return self.investment.iloc[-1, :].notna().sum()
+
+    @property
+    def total_shares(self):
+        # both closed and open shares.
+        return self.investment.shape[1]
+
+    @property
+    def current_sold_shares(self):
+        return self.investment.iloc[-1, :].isna().sum()

@@ -1,59 +1,31 @@
-from portfolio.Ticker import ShareCounter, Ticker
+from portfolio.Ticker import Ticker
 from portfolio.Parser import PortfolioParser
-from portfolio.Plotter import console_plot
+import pytest
 
 
-def test_ShareCounter_basics():
-    count = ShareCounter()
-    assert len(count.shares) == 0
-    count.add_new()
-    assert len(count.shares) == 1
-    assert count.shares[-1] == 1
-    assert count.shares[0] == 1
-    count.add_new()
-    count.add_new()
-    count.add_new()
-    assert len(count.shares) == 4
-    assert count.shares[-1] == 4
-    assert count.shares[0] == 1
-    count.remove_old()
-    assert len(count.shares) == 3
-    assert count.shares[-1] == 4
-    assert count.shares[0] == 2
-    count.remove_old()
-    assert len(count.shares) == 2
-    assert count.shares[-1] == 4
-    assert count.shares[0] == 3
-
-
-def test_add_position():
-    # test if number of added positions is in line with the number of to-be-added positions.
-    # portfoloi 3 has only open positions as set of actions.
-    filename = '../examples/portfolio_03.csv'
+def test_non_homogenous_ticker_list():
+    filename = '../examples/portfolio_01.csv'
     pp = PortfolioParser(filename)
-
-    positions = pp.grouped_positions
-    ticker = list(positions.keys())[-1]
-
-    t = Ticker(positions[ticker])
-    # shares from transaction table
-    total_shares = sum([pos.quantity for pos in pp.positions if pos.ticker == ticker])
-
-    assert t.investment.shape[1] == total_shares == t.open_shares
+    # take more or less randomly a ticker
+    with pytest.raises(Exception) as exception:
+        Ticker(pp.positions)
+    assert "There are different tickers in the positions list..." == str(exception.value)
 
 
-def test_remove_positions():
-    # test if number of added positions is in line with the number of to-be-added positions.
-    # use a set of transactions that also include closing position
+def test_share_numbers_for_a_ticker():
+    # compare number of shares from the parsed table with those from the ticker data frames.
     filename = '../examples/portfolio_05.csv'
     pp = PortfolioParser(filename)
-    positions = pp.grouped_positions
-    ticker = list(positions.keys())[-1]
-    t = Ticker(positions[ticker])
+    # take more or less randomly a ticker
+    ticker = pp.tickers[-1]
+    # parsed export file
+    parsed_df = pp.grouped_positions_df[ticker]
 
-    # shares from transaction table
-    total_shares = sum([pos.quantity for pos in pp.positions if pos.ticker == ticker])
-    # shares from the ticker object
-    open_shares = t.investment.iloc[-1, :].notna().sum()
+    #
+    t = Ticker(pp.grouped_positions[ticker])
 
-    assert open_shares == total_shares == t.open_shares
+    buys = parsed_df.loc[parsed_df.action == 'buy', 'quantity'].sum()
+    sells = parsed_df.loc[parsed_df.action == 'sell', 'quantity'].sum()
+    assert t.total_shares == buys
+    assert t.current_open_shares == buys + sells
+    assert t.current_sold_shares == -sells
