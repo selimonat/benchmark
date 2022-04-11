@@ -58,3 +58,10 @@ def test_sold_negative():
     pp = PortfolioParser(filename)
     assert np.all(pp.df.loc[pp.df.action == 'sell', 'quantity'] < 0)
     assert np.all(pp.df.loc[pp.df.action == 'buy', 'quantity'] > 0)
+
+
+def test_parsed_tickers():
+    filename = '../examples/portfolio_05.csv'
+    pp = PortfolioParser(filename)
+    assert type(pp.tickers) == list
+

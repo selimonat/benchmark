@@ -29,6 +29,11 @@ class PortfolioParser:
         self.df = self.parse_file(self.filename)
 
     @property
+    def tickers(self):
+        # list of tickers present in this parsum
+        return list(self.grouped_positions.keys())
+
+    @property
     def grouped_positions_df(self) -> Dict[AnyStr, pd.DataFrame]:
         """
         Returns: Returns parsed .csv export file as a dict organized as {ticker:df]}.
