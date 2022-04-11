@@ -14,7 +14,7 @@ pd.set_option('display.width', 1000)
 # used to map all column names listed in values, to their keys {target column name: export file column name}.
 # the column names listed as values are encountered on the .csv file and then mapped to final column names (shown in
 # keys).
-mapping = {'action': ['position'],
+mapping = {'action': ['action'],
            'quantity': ['quantity', 'amount'],
            'ticker': ['symbol', 'ticker'],
            'date_human': ['trade date', 'purchase date']

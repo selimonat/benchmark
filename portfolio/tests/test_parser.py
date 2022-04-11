@@ -25,7 +25,16 @@ def test_position_list_output():
 
 
 def test_position_dict_output():
+    # simply tests if the output of grouped_positions is a dict and that only one ticker is present in the grouped
+    # positions.
     filename = '../examples/portfolio_05.csv'
     pp = PortfolioParser(filename)
     assert type(pp.grouped_positions) == dict
     assert len(np.unique([pos.ticker for pos in pp.grouped_positions['FB']])) == 1
+
+
+def test_position_presence_of_sell_action():
+    # when using an export file with sell actions in it, do we get them parsed correctly?
+    filename = '../examples/portfolio_05.csv'
+    pp = PortfolioParser(filename)
+    assert set(pp.df['action'].values) == set(('buy','sell'))
