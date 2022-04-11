@@ -32,8 +32,7 @@ class Ticker:
             raise Exception("No positions are given...")
         self.ticker_value = db.read(self.ticker, self.time_line, output_format='series')
         if value is not None:
-            self.ticker_value = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
-            self.ticker_value.loc[:] = value
+            self.ticker_value = pd.Series(data=value, index=self.time_line)
 
         self.shares = list()
         self.value = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
@@ -100,7 +99,7 @@ class Ticker:
         step_size = (60 * 60 * 24)
         return \
             np.arange(min([pos.date for pos in self.positions]),
-                      utils.today()+step_size,  # if step_size not added it will exclude today
+                      utils.today() + step_size,  # if step_size not added it will exclude today
                       step_size,
                       dtype=int) \
                 if len(self.positions) != 0 else []
