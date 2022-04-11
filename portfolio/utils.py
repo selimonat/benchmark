@@ -2,6 +2,7 @@ from time import time
 from math import floor
 import logging
 import os
+import datetime
 
 
 def today():
@@ -52,3 +53,11 @@ def group_rank_id(df, grouper, sorter):
     # apply and merge to itself
     out = df.groupby(grouper).apply(group_fun).reset_index(drop=True)
     return df.merge(out, on=sorter)
+
+
+def parse_epoch(time_):
+    """
+    :param time_: epoch timestamp
+    :return: iso 8601 formatted datetime str that cbpro API is expecting.
+    """
+    return datetime.datetime.fromtimestamp(time_, tz=datetime.timezone.utc)
