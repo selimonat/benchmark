@@ -14,7 +14,12 @@ class Ticker:
     Keeps track of 3 variables: investment, current_price and profit/loss, all aligned on the same time-axis.
     """
 
-    def __init__(self, positions: Sequence[Position]):
+    def __init__(self, positions: Sequence[Position], value=None):
+        """
+        Args:
+            positions: List of Position classes.
+            value: Use this for testing purposes to overwrite the value ticker value.
+        """
         self.logger = utils.get_logger(__name__)
         self.positions = positions
         # check if all positions are from the same ticker
@@ -26,6 +31,9 @@ class Ticker:
         else:
             raise Exception("No positions are given...")
         self.ticker_value = db.read(self.ticker, self.time_line, output_format='series')
+        if value is not None:
+            self.ticker_value = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
+            self.ticker_value.loc[:] = value
 
         self.shares = list()
         self.value = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
