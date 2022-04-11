@@ -32,9 +32,9 @@ class Ticker:
             raise Exception("No positions are given...")
         self.ticker_value = db.read(self.ticker, self.time_line, output_format='series')
         if value is not None:
-            self.ticker_value = pd.DataFrame(data=[value],
-                                             index=self.time_line,
-                                             columns=list(range(len(value))))
+            self.ticker_value = pd.Series(data=value,
+                                          index=self.time_line,
+                                          )
 
         self.shares = list()
         self.value = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
