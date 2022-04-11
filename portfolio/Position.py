@@ -22,8 +22,7 @@ class Position:
         self.cost = self.value_at([self.date])
 
     def __str__(self):
-        return f"{self.action} of {self.quantity} shares of {self.ticker} for {self.cost} at {self.date}.  " \
-               f"It has been paid a commision of {self.commission} for this position."
+        return f"{self.action} {self.quantity} {self.ticker} {self.cost} {self.date}.  "
 
     @property
     def df(self) -> pd.DataFrame:
