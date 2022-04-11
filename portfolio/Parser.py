@@ -29,17 +29,25 @@ class PortfolioParser:
         self.df = self.parse_file(self.filename)
 
     @property
-    def grouped_positions(self) -> Dict:
+    def grouped_positions_df(self) -> Dict[AnyStr, pd.DataFrame]:
+        """
+        Returns: Returns parsed .csv export file as a dict organized as {ticker:df]}.
+        """
+        # convert values to DataFrames
+        d = defaultdict(list)
+        for ticker, positions in self.grouped_positions.items():
+            d[ticker] = pd.concat([pos.df for pos in positions])
+        return dict(d)
+
+    @property
+    def grouped_positions(self) -> Dict[AnyStr, Position]:
         """
         Returns: Returns parsed .csv export file as a dict organized as {ticker:[positions]}.
         """
-        d_ = defaultdict(list)
-        for pos in self.positions:
-            d_[pos.ticker].append(pos)
-        # convert values to DataFrames
         d = defaultdict(list)
-        for ticker in d_.keys():
-            d[ticker] = pd.concat([pos.df for pos in d_[ticker]])
+        for pos in self.positions:
+            d[pos.ticker].append(pos)
+
         return dict(d)
 
     @property

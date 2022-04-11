@@ -1,6 +1,6 @@
 from portfolio.Parser import PortfolioParser
 from portfolio.Position import Position
-from typing import Dict
+from typing import Dict, List
 import pandas as pd
 import numpy as np
 
@@ -21,7 +21,7 @@ def test_transaction_table_data_types():
 def test_position_list_output():
     filename = '../examples/portfolio_01.csv'
     pp = PortfolioParser(filename)
-    assert type(pp.positions) == Position
+    assert type(pp.positions) == list
 
 
 def test_position_dict_output():
@@ -29,9 +29,10 @@ def test_position_dict_output():
     # positions.
     filename = '../examples/portfolio_05.csv'
     pp = PortfolioParser(filename)
-    assert type(pp.grouped_positions) == dict
-    ticker = list(pp.grouped_positions.keys())[0]
-    assert type(pp.grouped_positions[ticker]) == pd.DataFrame
+    out = pp.grouped_positions
+    assert type(out) == dict
+    example_ticker = list(out.keys())[0]
+    assert len(np.unique([pos.ticker for pos in out[example_ticker]])) == 1
 
 
 def test_position_presence_of_sell_action():
@@ -39,3 +40,14 @@ def test_position_presence_of_sell_action():
     filename = '../examples/portfolio_05.csv'
     pp = PortfolioParser(filename)
     assert set(pp.df['action'].values) == set(('buy','sell'))
+
+
+def test_position_df_output():
+    # simply tests if the output of grouped_positions is a dict and that only one ticker is present in the grouped
+    # positions.
+    filename = '../examples/portfolio_05.csv'
+    pp = PortfolioParser(filename)
+    example_ticker = list(pp.grouped_positions_df.keys())[0]
+    df = pp.grouped_positions_df[example_ticker]
+    assert type(df) == pd.DataFrame
+    assert len(np.unique(df.ticker)) == 1
