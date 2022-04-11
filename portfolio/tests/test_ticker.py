@@ -6,6 +6,7 @@ import pytest
 from portfolio.Plotter import console_plot
 import numpy as np
 import pandas as pd
+from math import isclose
 
 
 def test_non_homogenous_ticker_list():
@@ -57,12 +58,41 @@ def test_parameters_for_bought_one_share_one_lot():
 
 
 def test_parameters_for_bought_n_shares_one_lot():
-    pos = Position(action='buy', quantity=100, ticker='FB', date=utils.today(), cost=100)
-    t = Ticker([pos], value=100)
-    assert t.returns.values == 0
-    assert t.total_shares == 100
+    quantity = 100
+    cost = 100
+    current_value = 110
+    pos1 = Position(action='buy',
+                    quantity=quantity,
+                    ticker='FB',
+                    date=utils.today(),
+                    cost=cost)
+    t = Ticker([pos1], value=current_value)
+    assert isclose(t.returns.values, 100 * (current_value - cost) / cost)
+    assert t.total_shares == quantity
     assert t.profit_loss.sum(axis=1).values == 0
-    assert t.unrealized_gain.values == 0
-    assert t.total_invested.values == 100 * 100
-    assert t.current_open_shares == 100
+    assert t.unrealized_gain.values == (current_value - cost) * 100
+    assert t.total_invested.values == quantity * cost
+    assert t.current_open_shares == quantity
     assert t.current_sold_shares == 0
+
+
+def test_parameters_for_bought_one_share_two_lots():
+    quantity1 = 1
+    cost1 = 100
+    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today(), cost=cost1)
+    quantity2 = 1
+    cost2 = 100
+    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=utils.today(), cost=cost2)
+    current_value = 110
+    t = Ticker([pos1, pos2], value=[current_value])
+
+    cost = (cost1+cost2)/2
+    quantity = quantity1 + quantity2
+    assert isclose(t.returns.values, 100 * (current_value - cost) / cost)
+    assert t.total_shares == quantity1 + quantity2
+    assert t.profit_loss.sum(axis=1).values == 0
+    assert t.unrealized_gain.values == (current_value - cost) * quantity
+    assert t.total_invested.values == quantity * cost
+    assert t.current_open_shares == quantity
+    assert t.current_sold_shares == 0
+
