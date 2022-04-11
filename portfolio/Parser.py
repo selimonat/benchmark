@@ -55,6 +55,7 @@ class PortfolioParser:
         """
         Returns: Returns parsed .csv export file as a list of positions.
         """
+
         def callback(col) -> Position:
             return Position(col.action, int(col.quantity), col.ticker, int(col.date))
 
@@ -103,6 +104,9 @@ class PortfolioParser:
         self.logger.info('Adjusting datatypes, avoiding objects.')
         df['action'] = df['action'].astype("category")
         df['ticker'] = df['ticker'].astype("category")
+        # make quantities negative for sold shares
+        i = df.action == 'sell'
+        df.loc[i, 'quantity'] = df.loc[i, 'quantity'] * -1
         # TODO: validity check: if the returned value is NaN, then it is possible that this was a weekend or so. which
         #  would lead NaN to be returned for the current_price.
         return df

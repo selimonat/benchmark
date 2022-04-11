@@ -39,7 +39,7 @@ def test_position_presence_of_sell_action():
     # when using an export file with sell actions in it, do we get them parsed correctly?
     filename = '../examples/portfolio_05.csv'
     pp = PortfolioParser(filename)
-    assert set(pp.df['action'].values) == set(('buy','sell'))
+    assert set(pp.df['action'].values) == set(('buy', 'sell'))
 
 
 def test_position_df_output():
@@ -51,3 +51,10 @@ def test_position_df_output():
     df = pp.grouped_positions_df[example_ticker]
     assert type(df) == pd.DataFrame
     assert len(np.unique(df.ticker)) == 1
+
+
+def test_sold_negative():
+    filename = '../examples/portfolio_05.csv'
+    pp = PortfolioParser(filename)
+    assert np.all(pp.df.loc[pp.df.action == 'sell', 'quantity'] < 0)
+    assert np.all(pp.df.loc[pp.df.action == 'buy', 'quantity'] > 0)
