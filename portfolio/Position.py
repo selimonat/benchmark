@@ -8,7 +8,8 @@ db = Database.DB()
 class Position:
     """
     Represents an open or closed position for a given ticker, stores information about whether a position is open or
-    closed, how many shares have been sold and the date of purchase or close.
+    closed, how many shares have been sold and the date of purchase or close. The price information is queried from
+    the database.
     """
 
     def __init__(self, action: AnyStr, quantity: int, ticker: AnyStr, date: int):
@@ -18,10 +19,10 @@ class Position:
         self.ticker = ticker
         self.date = date
         self.commission = 0
-        self.current_price = self.value_at([self.date])
+        self.cost = self.value_at([self.date])
 
     def __str__(self):
-        return f"{self.action} of {self.quantity} shares of {self.ticker} for {self.current_price} at {self.date}.  " \
+        return f"{self.action} of {self.quantity} shares of {self.ticker} for {self.cost} at {self.date}.  " \
                f"It has been paid a commision of {self.commission} for this position."
 
     @property
@@ -36,7 +37,7 @@ class Position:
         out.quantity = out.quantity.astype(int)
         out.ticker = out.ticker.astype('category')
         out.date = out.date.astype(int)
-        out.current_price = out.current_price.astype(float)
+        out.cost = out.cost.astype(float)
         return out
 
     def value_at(self, date: list) -> SupportsFloat:
