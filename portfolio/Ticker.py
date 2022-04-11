@@ -21,8 +21,10 @@ class Ticker:
         ticker = np.unique([pos.ticker for pos in self.positions])
         if len(ticker) == 1:
             self.ticker = ticker[0]
-        else:
+        elif len(ticker) > 1:
             raise Exception("There are different tickers in the positions list...")
+        else:
+            raise Exception("No positions are given...")
         self.ticker_value = db.read(self.ticker, self.time_line, output_format='series')
 
         self.shares = list()
@@ -63,22 +65,37 @@ class Ticker:
             self.profit_loss.loc[invalid, current_share] = np.nan
 
     def close_position(self, pos: Position):
-        # Implements FIFO logic.
-        # Nanize values of time-points coming after the sell
-        # it needs to find first non-nan time-point across the shares.
+        """
+        # Implements FIFO logic for selling shares ie sells shares that were bought first. For all sold shares,
+        time-series are NaNized for all time-points coming after the sell transaction.
+
+        Args:
+            pos: (Position)
+
+        Returns:
+            Updates 3 dataframes: investment, profit_lost, value.
+        """
+
         for share in range(abs(pos.quantity)):
             current_share = self.investment.loc[pos.date].notna().idxmax()
             invalid = self.investment.index >= pos.date
+
+            self.logger.info('Profit/Loss will be updated following this transaction')
+            self.profit_loss.loc[invalid, current_share] = self.value.loc[invalid, current_share]
+
             self.logger.info(f'All time points bigger than {pos.date} will be nanized for share {current_share}.')
             self.investment.loc[invalid, current_share] = np.nan
             self.value.loc[invalid, current_share] = np.nan
-            self.profit_loss.loc[invalid, current_share] = np.nan
 
     @property
     def time_line(self):
-        return np.arange(min([pos.date for pos in self.positions]),
-                         utils.today(), (60 * 60 * 24),
-                         dtype=int)
+        step_size = (60 * 60 * 24)
+        return \
+            np.arange(min([pos.date for pos in self.positions]),
+                      utils.today()+step_size,  # if step_size not added it will exclude today
+                      step_size,
+                      dtype=int) \
+                if len(self.positions) != 0 else []
 
     @property
     def current_open_shares(self):
@@ -92,3 +109,16 @@ class Ticker:
     @property
     def current_sold_shares(self):
         return self.investment.iloc[-1, :].isna().sum()
+
+    @property
+    def total_invested(self):
+        # total money that is currently invested.
+        return self.investment.sum(axis=1)
+
+    @property
+    def returns(self):
+        return ((self.value - self.investment) / self.investment).mean(axis=1) * 100
+
+    @property
+    def unrealized_gain(self):
+        return (self.value - self.investment).sum(axis=1)
