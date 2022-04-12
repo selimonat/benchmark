@@ -43,6 +43,9 @@ class Ticker:
 
         self.update()
 
+    def __str__(self):
+        return ''.join([f"Pos#{i}: {pos.__str__()}\n" for i, pos in enumerate(self.positions)])
+
     def update(self):
 
         for pos in self.positions:
