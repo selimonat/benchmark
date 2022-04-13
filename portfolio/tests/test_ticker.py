@@ -117,3 +117,31 @@ def test_parameters_for_bought_different_shares_two_lots():
     assert t.total_invested.values == (cost1*quantity1 + cost2*quantity2)
     assert t.current_open_shares == quantity
     assert t.current_sold_shares == 0
+
+
+def test_parameters_for_buy_two_sell_one_lot():
+    quantity1 = 10
+    cost1 = 110
+    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today(), cost=cost1)
+    quantity2 = 1
+    cost2 = 100
+    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=utils.today(), cost=cost2)
+    quantity3 = 5
+    cost3 = 110
+    pos3 = Position(action='sell', quantity=quantity3, ticker='FB', date=utils.today(), cost=cost3)
+    current_value = 110
+    t = Ticker([pos1, pos2, pos3], value=[current_value])
+
+    quantity = quantity1 - quantity3 + quantity2
+    cost = cost1*(quantity1-quantity3) + cost2*quantity2
+    value = current_value*quantity
+
+    assert isclose(t.returns.values, (value-cost)/cost*100)
+    assert t.total_shares == quantity1 + quantity2
+    assert t.profit_loss.sum(axis=1).values == current_value*quantity3
+    assert t.unrealized_gain.values == current_value*quantity - (cost1*5+cost2)
+    assert t.total_invested.values == (cost1*(quantity1-quantity3) + cost2*quantity2)
+    assert t.current_open_shares == quantity
+    assert t.current_sold_shares == quantity3
+
+#  TODO: asset return at purchase date must be 100%
