@@ -144,4 +144,14 @@ def test_parameters_for_buy_two_sell_one_lot():
     assert t.current_open_shares == quantity
     assert t.current_sold_shares == quantity3
 
+
+def test_not_enough_shares_to_sell():
+    pos = Position(action='sell', quantity=3, ticker='FB', date=utils.today())
+    with pytest.raises(Exception) as exception:
+        Ticker([pos])
+    assert 'You do not have enough shares to sell.' == str(exception.value)
+
+
+
+
 #  TODO: asset return at purchase date must be 100%

@@ -87,6 +87,8 @@ class Ticker:
         Returns:
             Updates 3 dataframes: investment, profit_lost, value.
         """
+        if len(self.shares) < abs(pos.quantity):
+            raise ValueError('You do not have enough shares to sell.')
 
         for share in range(abs(pos.quantity)):
             current_share = self.investment.loc[pos.date].notna().idxmax()
