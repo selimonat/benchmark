@@ -21,28 +21,29 @@ def main():
 
     # create indices if they are not already created
     for ind in ['time-series']:
-            db.setup_es_index(ind)
+        db.setup_es_index(ind)
 
     tickers = utils.get_all_tickers()
     if tickers is None:
         raise Exception(f"We can''t continue without a list of tickers {tickers}.")
 
-    logger.info(f'Found these tickers:\n{tickers.to_json()}')
+    logger.info(f'Found tickers {tickers.shape}:\n{tickers.to_json()}')
 
     for ticker in tickers:
 
-        logger.info(f"Working on ticker {ticker}.")
+        logger.info(f"==================Working on ticker {ticker}==================")
         # get ticker from ES.
-        df_db = db.read(ticker,output_format='series')
+        df_db = db.read(ticker, output_format='series')
         # find the maximum value and use the next day as the start argument
         if not df_db.empty:
             start_minus_one = df_db.index.max()
+            logger.info(f"Received a DF of size {df_db.shape[0]} from the DB.")
             logger.info(f"Last found date in the DB is {datetime.datetime.fromtimestamp(start_minus_one)}.")
-            start = start_minus_one + 24*60*60
+            start = start_minus_one + 24 * 60 * 60
             start = datetime.datetime.fromtimestamp(start)
             logger.info(f"The first missing date is {start}.")
         else:
-            start = '1900-01-01'
+            start = datetime.datetime.strptime('1900-01-01', '%Y-%m-%d')
 
         t = yf.Ticker(ticker)
 
@@ -52,7 +53,8 @@ def main():
         # take only close. alternative could be open, high, low
         df = df["Close"]
         if not df.empty:
-            logger.info(f"Got a DF, the first date is {df.index.min()} and the last one is {df.index.max()}")
+            logger.info(f"Got a DF of size {df.shape[0]}, the first date is {df.index.min()} and the last one is"
+                        f" {df.index.max()}")
             df.index.name = 'date'
             df = df.reset_index()
             # convert unserializable datetime columns to integer
@@ -61,16 +63,15 @@ def main():
             df['ticker'] = ticker
             df = df.set_index('date')
 
-            if not db.write(ind, df):
+            if db.write(ind, df):
                 logger.info(f'Success... Wrote {df.shape[0]} new rows for {ticker}.')
+                logger.info(f"Will wait a bit before the next call")
+                time.sleep(5)
             else:
-                logger.warning(f'Something when wrong while writing {ticker} to db...')
+                logger.warning(f'Something went wrong while writing {ticker} to db...')
                 # Sleep a bit so that Yahoo doesn't black list us
         else:
             logger.warning(f'Returned/Filtered df for {ticker} is empty.')
-
-        logger.info(f"Will wait a bit before the next call")
-        time.sleep(5)
 
 
 if __name__ == '__main__':

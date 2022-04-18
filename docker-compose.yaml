@@ -3,8 +3,8 @@ version: "2"
 services:
   downloader:
     build:
-      context: ./downloader
-      dockerfile: ./Dockerfile-downloader
+      context: ./
+      dockerfile: ./downloader/Dockerfile-downloader
 
 
   elasticsearch:
