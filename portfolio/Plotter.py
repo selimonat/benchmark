@@ -28,4 +28,4 @@ def console_plot(s: pd.Series, remove_nans=False):
          ys=y,
          lines=True,
          x_unit='date',
-         width=150)
+         width=200)
