@@ -45,6 +45,17 @@ class PortfolioParser:
         return dict(d)
 
     @property
+    def tickers(self) -> List[Ticker]:
+        """
+        A list of Ticker objects, to be fed directly to Portfolio.
+        """
+        d = list()
+
+        for ticker_name, positions in self.grouped_positions.items():
+            d.append(Ticker(positions))
+        return d
+
+    @property
     def grouped_positions_df(self) -> Dict[AnyStr, pd.DataFrame]:
         """
         Returns: Returns parsed .csv export file as a dict organized as {ticker:df]}.

@@ -67,9 +67,22 @@ def test_parsed_tickers():
     assert type(pp.ticker_names) == list
 
 
-def test_Ticker_output():
+def test_grouped_Ticker_output():
     filename = '../examples/portfolio_05.csv'
     pp = PortfolioParser(filename)
     t = pp.ticker_names[0]
     assert type(pp.grouped_tickers[t]) == Ticker
 
+
+def test_Ticker_output():
+    filename = '../examples/portfolio_05.csv'
+    pp = PortfolioParser(filename)
+    assert type(pp.tickers) == list
+    assert type(pp.tickers[0]) == Ticker
+    assert pp.df['ticker'].nunique() == len(pp.tickers)
+
+    filename = '../examples/portfolio_01.csv'
+    pp = PortfolioParser(filename)
+    assert type(pp.tickers) == list
+    assert type(pp.tickers[0]) == Ticker
+    assert pp.df['ticker'].nunique() == len(pp.tickers)
