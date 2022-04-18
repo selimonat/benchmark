@@ -1,5 +1,6 @@
 from portfolio.Parser import PortfolioParser
 from portfolio.Position import Position
+from portfolio.Ticker import Ticker
 from typing import Dict, List
 import pandas as pd
 import numpy as np
@@ -63,5 +64,12 @@ def test_sold_negative():
 def test_parsed_tickers():
     filename = '../examples/portfolio_05.csv'
     pp = PortfolioParser(filename)
-    assert type(pp.tickers) == list
+    assert type(pp.ticker_names) == list
+
+
+def test_Ticker_output():
+    filename = '../examples/portfolio_05.csv'
+    pp = PortfolioParser(filename)
+    t = pp.ticker_names[0]
+    assert type(pp.grouped_tickers[t]) == Ticker
 

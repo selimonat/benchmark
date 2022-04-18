@@ -31,7 +31,7 @@ def test_share_numbers_for_a_ticker():
     filename = '../examples/portfolio_05.csv'
     pp = PortfolioParser(filename)
     # take more or less randomly a ticker
-    ticker = pp.tickers[-1]
+    ticker = pp.ticker_names[-1]
     # parsed export file
     parsed_df = pp.grouped_positions_df[ticker]
 

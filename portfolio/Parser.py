@@ -4,6 +4,7 @@ import portfolio.utils as utils
 from dateutil import parser
 from typing import AnyStr, List, Dict
 from portfolio.Position import Position
+from portfolio.Ticker import Ticker
 from collections import defaultdict
 
 pd.set_option('display.max_columns', None)
@@ -29,9 +30,19 @@ class PortfolioParser:
         self.df = self.parse_file(self.filename)
 
     @property
-    def tickers(self):
+    def ticker_names(self):
         # list of tickers present in this parsum
         return list(self.grouped_positions.keys())
+
+    @property
+    def grouped_tickers(self) -> Dict[AnyStr, Ticker]:
+        """
+        Grouped Ticker objects for each position.
+        """
+        d = defaultdict(list)
+        for ticker_name, positions in self.grouped_positions.items():
+            d[ticker_name] = Ticker(positions)
+        return dict(d)
 
     @property
     def grouped_positions_df(self) -> Dict[AnyStr, pd.DataFrame]:
@@ -45,7 +56,7 @@ class PortfolioParser:
         return dict(d)
 
     @property
-    def grouped_positions(self) -> Dict[AnyStr, Position]:
+    def grouped_positions(self) -> Dict[AnyStr, List[Position]]:
         """
         Returns: Returns parsed .csv export file as a dict organized as {ticker:[positions]}.
         """
