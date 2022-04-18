@@ -131,9 +131,9 @@ class Ticker:
 
     @property
     def returns(self):
-        I = self.investment.sum(axis=1)
-        V = self.value.sum(axis=1)
-        return 100*(V-I)/I
+        I = self.investment.sum(axis=1, skipna=False)
+        V = self.value.sum(axis=1, skipna=False)
+        return 100 * (V - I) / I
 
     @property
     def unrealized_gain(self):
