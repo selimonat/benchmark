@@ -93,7 +93,8 @@ class DB:
 
         except NotFoundError as err:
             self.logger.error(err)
-
+        except AttributeError as err:
+            self.logger.error(err)
         return df
 
     def write(self, index_name: AnyStr, df: pd.DataFrame) -> bool:
