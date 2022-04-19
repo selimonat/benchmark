@@ -138,3 +138,7 @@ class Ticker:
     @property
     def unrealized_gain(self):
         return (self.value - self.investment).sum(axis=1)
+
+    @property
+    def average_cost_per_share(self):
+        return self.total_invested / self.total_shares
