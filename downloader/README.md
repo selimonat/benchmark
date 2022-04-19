@@ -3,9 +3,13 @@ Downloader
 Downloads daily time-series data for all tickers listed in Nasdaq. Stores these in the ES container.
 
 How to run?
-- `python downloader/downloader.py` to start a cycle of updates.
-  
-- `python downloader/downloader.py FB` to update a given ticker.
+Either from withing `benchmark` top-level directory:
+- `python downloader` to start a cycle of updates.
+- `python downloader FB` to update a given ticker.
+
+Or by calling the `benchmark` package as:
+- `python benchmark db-update --ticker GOOG`
+- `python benchmark db-update`
 
 Requirements:
 

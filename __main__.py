@@ -4,7 +4,7 @@ from portfolio.Plotter import console_plot
 from portfolio.Portfolio import Portfolio
 from portfolio.Database import DB
 
-from downloader.downloader import updater
+from downloader.__main__ import updater
 
 app = typer.Typer(add_completion=False)
 db = DB()
@@ -54,7 +54,7 @@ def plot_time_course(ticker=None):
     Args:
         ticker: (str)
     """
-    df = db.read(ticker,output_format='series')
+    df = db.read(ticker, output_format='series')
     console_plot(df)
 
 
