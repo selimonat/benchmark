@@ -1,7 +1,10 @@
 from portfolio.Database import DB
 from portfolio.Ticker import Ticker
+from portfolio.Parser import PortfolioParser
+from portfolio.Plotter import console_plot
 from typing import List
 import pandas as pd
+
 db = DB()
 
 
@@ -25,4 +28,4 @@ class Portfolio:
         print(a)
         w = pd.concat([t.total_invested for t in self.tickers], axis=1)
         print(w)
-        return (a * w).sum(axis=1) / w.sum(axis=1)
+        return (a * w).sum(axis=1, skipna=False) / w.sum(axis=1, skipna=False)
