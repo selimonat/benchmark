@@ -1,9 +1,11 @@
+from typing import AnyStr, Union
 import yfinance as yf
 import pandas as pd
 import time
 import utils
 from portfolio.Database import DB
 import datetime
+import sys
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', 500)
@@ -13,9 +15,13 @@ pd.set_option('display.width', 1000)
 logger = utils.get_logger("downloader")
 
 
-def main():
+def updater(tickers: Union[AnyStr, None] = None):
     """
     Saves historical values fetched from Yahoo Finance to a local Elastic cluster.
+
+    Args:
+        tickers (str): If present (Example: 'FB') then fetches data for that specific ticker. Otherwise starts a
+        whole update cycle, running across all tickers.
     """
     db = DB()
 
@@ -23,11 +29,14 @@ def main():
     for ind in ['time-series']:
         db.setup_es_index(ind)
 
-    tickers = utils.get_all_tickers()
-    if tickers is None:
-        raise Exception(f"We can''t continue without a list of tickers {tickers}.")
-
-    logger.info(f'Found tickers {tickers.shape}:\n{tickers.to_json()}')
+    if tickers is None:  # fetch a list of tickers if not given
+        logger.info("Fetching tickers from internet.")
+        tickers = utils.get_all_tickers()
+        if tickers is None:
+            raise Exception(f"We can''t continue without a list of tickers {tickers}.")
+        logger.info(f'Found tickers {tickers.shape}:\n{tickers.to_json()}')
+    else:
+        tickers = pd.Series(tickers, name='Symbol')  # put it to the same format returned by utils.get_all_tickers().
 
     for ticker in tickers:
 
@@ -75,4 +84,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    ticker_input = None
+    if len(sys.argv) == 2:
+        ticker_input = sys.argv[1]
+    updater(ticker_input)
