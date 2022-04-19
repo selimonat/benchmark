@@ -25,7 +25,11 @@ class Portfolio:
     @property
     def returns(self):
         a = pd.concat([t.returns for t in self.tickers], axis=1)
-        print(a)
         w = pd.concat([t.total_invested for t in self.tickers], axis=1)
-        print(w)
-        return (a * w).sum(axis=1, skipna=False) / w.sum(axis=1, skipna=False)
+        s = (a * w).sum(axis=1, skipna=False) / w.sum(axis=1, skipna=False)
+        s.name = 'returns'
+        return s
+
+    @property
+    def summary(self):
+        pass
