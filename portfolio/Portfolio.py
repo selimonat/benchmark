@@ -4,6 +4,7 @@ from portfolio.Parser import PortfolioParser
 from portfolio.Plotter import console_plot
 from typing import List
 import pandas as pd
+import json
 
 db = DB()
 
@@ -32,4 +33,8 @@ class Portfolio:
 
     @property
     def summary(self):
-        pass
+        out = {'return': {t.ticker: t.returns.loc[~t.returns.isna()].iloc[-1] for t in self.tickers},
+               'total shares': {t.ticker: t.total_shares for t in self.tickers},
+               'average cost': {t.ticker: t.total_invested.iloc[-1] / t.total_shares for t in self.tickers}
+               }
+        return json.dumps(out)
