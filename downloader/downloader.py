@@ -2,7 +2,7 @@ from typing import AnyStr, Union
 import yfinance as yf
 import pandas as pd
 import time
-import utils
+from downloader import utils
 from portfolio.Database import DB
 import datetime
 import sys
