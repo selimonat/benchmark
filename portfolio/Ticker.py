@@ -4,6 +4,7 @@ from portfolio.Database import DB
 from portfolio import utils
 import pandas as pd
 import numpy as np
+import datetime
 
 db = DB()
 
@@ -103,13 +104,17 @@ class Ticker:
 
     @property
     def time_line(self):
+        """
+        Computes the time index for all dataframes. It excludes weekends.
+        """
         step_size = (60 * 60 * 24)
-        return \
-            np.arange(min([pos.date for pos in self.positions]),
-                      utils.today() + step_size,  # if step_size not added it will exclude today
-                      step_size,
-                      dtype=int) \
-                if len(self.positions) != 0 else []
+        dummy = np.arange(min([pos.date for pos in self.positions]),
+                          utils.today() + step_size,  # if step_size not added it will exclude today
+                          step_size,
+                          dtype=int) if len(self.positions) != 0 else []
+        # exclude weekends
+        weekends = [datetime.datetime.fromtimestamp(ts).weekday() <= 4 for ts in dummy]
+        return dummy[weekends]
 
     @property
     def current_open_shares(self):

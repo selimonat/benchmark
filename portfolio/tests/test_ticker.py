@@ -3,10 +3,9 @@ from portfolio.Parser import PortfolioParser
 from portfolio.Position import Position
 from portfolio import utils
 import pytest
-from portfolio.Plotter import console_plot
 import numpy as np
-import pandas as pd
 from math import isclose
+import datetime
 
 
 def test_non_homogenous_ticker_list():
@@ -152,6 +151,12 @@ def test_not_enough_shares_to_sell():
     assert 'You do not have enough shares to sell.' == str(exception.value)
 
 
+def test_timeline_should_not_have_any_weekends():
+    quantity1 = 10
+    cost1 = 110
+    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today()-24*60*60*100, cost=cost1)
+    ticker = Ticker([pos1])
 
+    assert np.all([datetime.datetime.fromtimestamp(t).weekday() <= 4 for t in ticker.time_line])
 
 #  TODO: asset return at purchase date must be 100%
