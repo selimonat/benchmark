@@ -3,10 +3,13 @@ from portfolio.Parser import PortfolioParser
 from portfolio.Plotter import console_plot
 from portfolio.Portfolio import Portfolio
 from portfolio.Database import DB
+import pandas as pd
+import json
+from pprint import pprint
 
 from downloader.__main__ import updater
 
-app = typer.Typer(add_completion=False)
+app = typer.Typer(add_completion=True)
 db = DB()
 
 
@@ -34,21 +37,33 @@ def parse_export(filename: str) -> str:
 
 
 @app.command()
-def get_time_course(filename: str):
+def returns_time_course(filename: str):
     """
     Returns time-course of asset prices in the portfolio
     Args:
-        filename:
+        filename: Path to portfolio export file.
     Returns:
         df: with as many columns as tickers in portfolio indexed on time.
     """
     pp = PortfolioParser(filename)
     p = Portfolio(pp.tickers)
-    console_plot(p.returns, )
+    console_plot(p.returns)
 
 
 @app.command()
-def plot_time_course(ticker=None):
+def portfolio_summary(filename: str):
+    """
+    Returns the return of a portfolio for the last time point
+    Args:
+        filename: path to portfolio file.
+    """
+    pp = PortfolioParser(filename)
+    p = Portfolio(pp.tickers)
+    pprint(p.summary)
+
+
+@app.command()
+def ticker_time_course(ticker=None):
     """
     Plot time course on the console.
     Args:
