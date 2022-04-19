@@ -2,10 +2,12 @@ import typer
 from portfolio.Parser import PortfolioParser
 from portfolio.Plotter import console_plot
 from portfolio.Portfolio import Portfolio
+from portfolio.Database import DB
 
 from downloader.downloader import updater
 
 app = typer.Typer(add_completion=False)
+db = DB()
 
 
 @app.command()
@@ -45,7 +47,15 @@ def get_time_course(filename: str):
     console_plot(p.returns, )
 
 
-#  TODO: plot ticker
+@app.command()
+def plot_time_course(ticker=None):
+    """
+    Plot time course on the console.
+    Args:
+        ticker: (str)
+    """
+    df = db.read(ticker,output_format='series')
+    console_plot(df)
 
 
 if __name__ == "__main__":
