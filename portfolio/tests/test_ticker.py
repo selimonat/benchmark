@@ -159,4 +159,13 @@ def test_timeline_should_not_have_any_weekends():
 
     assert np.all([datetime.datetime.fromtimestamp(t).weekday() <= 4 for t in ticker.time_line])
 
-#  TODO: asset return at purchase date must be 100%
+
+def test_return_at_purchase_date():
+    #  The return must be 0% at the purchase date.
+
+    # open a FB position 149 days before today
+    # this is interesting if 150 days, then it doesn't work, it is probably a holiday or so.
+    date = utils.today()-24*60*60*149
+    pos1 = Position(action='buy', quantity=1, ticker='FB', date=date)
+    t = Ticker([pos1])
+    assert t.returns[date] == 0
