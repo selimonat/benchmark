@@ -16,7 +16,7 @@ def get_all_tickers() -> Union[pd.Series, None]:
 
     # an alternative ticker list, maybe be merge this with the one above.
     # url = 'ftp://ftp.nasdaqtrader.com/SymbolDirectory/otherlisted.txt'
-    cached_file = './benchmark/downloader/tickers/nasdaq.csv'``
+    cached_file = './benchmark/downloader/tickers/nasdaq.csv'
     url = 'ftp://ftp.nasdaqtrader.com/SymbolDirectory/nasdaqlisted.txt'
     logger = get_logger('get_all_tickers')
     try:
