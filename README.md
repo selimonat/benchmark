@@ -29,7 +29,7 @@ This package features different components:
 # Installation
 To install Python dependencies `make setup.env`. 
 To use the portfolio package, Elasticsearch (and optionally Kibana) services must be spin off and filled with data. 
-So give some time for the downloader bot to fill up the ES cluster.
+Trigger this process via ` python benchmark db-update` call and give some time for the bot to fill up the ES cluster.
 
 # Architecture
 
