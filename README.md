@@ -103,7 +103,9 @@ Example:
 ]
 ```
 There is also a simple `console plotting` tool included.
+
 `python benchmark returns-time-course benchmark/portfolio/examples/portfolio_03.csv`
+
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                                                                                          ▖    ▗▚▛▄                                     │ 

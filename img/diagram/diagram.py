@@ -7,7 +7,7 @@ from diagrams.generic.storage import Storage
 with Diagram("", show=False):
     connector = Python("DB connector\n(portfolio.DataBase)")
     portfolio = Python("Portfolio Backend\n(portfolio.Portfolio)")
-    parser = Python("Export File Parser\n(portfolio.Parser")
+    parser = Python("Export File Parser\n(portfolio.Parser)")
     file = Storage("Portfolio File Export")
     with Cluster("Services"):
         downloader = Python("Downloader Bot\n(downloader)")
