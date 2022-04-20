@@ -136,8 +136,8 @@ class Ticker:
 
     @property
     def returns(self):
-        I = self.investment.sum(axis=1, skipna=False)
-        V = self.value.sum(axis=1, skipna=False)
+        I = self.investment.sum(axis=1, skipna=True, min_count=1)
+        V = self.value.sum(axis=1, skipna=True, min_count=1)
         return 100 * (V - I) / I
 
     @property
