@@ -5,13 +5,13 @@ from diagrams.generic.storage import Storage
 
 
 with Diagram("", show=False):
-    connector = Python("DB connector")
-    portfolio = Python("Portfolio Backend")
-    parser = Python("Export File Parser")
+    connector = Python("DB connector\n(portfolio.DataBase)")
+    portfolio = Python("Portfolio Backend\n(portfolio.Portfolio)")
+    parser = Python("Export File Parser\n(portfolio.Parser")
     file = Storage("Portfolio File Export")
     with Cluster("Services"):
-        downloader = Python("Data Downloader")
-        es = Elasticsearch("ES")
+        downloader = Python("Downloader Bot\n(downloader)")
+        es = Elasticsearch("Elasticsearch")
         kibana = Kibana('Monitoring')
 
     downloader >> connector >> es << kibana

@@ -2,7 +2,7 @@
 name = "benchmark"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Selim Onat"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
