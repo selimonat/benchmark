@@ -31,9 +31,9 @@ def parse_export(filename: str) -> str:
         Transaction table as JSON.
     """
     df = PortfolioParser(filename).df
-    out = df.to_json(orient='records')
-    print(out)
-    return out
+    out = df.to_dict(orient='records')
+    print(json.dumps(out, indent=4))
+    return json.dumps(out)
 
 
 @app.command()
@@ -59,7 +59,9 @@ def portfolio_summary(filename: str):
     """
     pp = PortfolioParser(filename)
     p = Portfolio(pp.tickers)
-    pprint(p.summary)
+    out = p.summary
+    print(json.dumps(out, indent=4))
+    return json.dumps(out)
 
 
 @app.command()

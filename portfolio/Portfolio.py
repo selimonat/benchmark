@@ -37,4 +37,4 @@ class Portfolio:
                'total shares': {t.ticker: t.total_shares for t in self.tickers},
                'average cost': {t.ticker: t.total_invested.iloc[-1] / t.total_shares for t in self.tickers}
                }
-        return json.dumps(out)
+        return out
