@@ -3,6 +3,7 @@ from portfolio.Ticker import Ticker
 from typing import List
 import pandas as pd
 import numpy as np
+from collections import defaultdict
 
 db = DB()
 
@@ -23,13 +24,15 @@ class Portfolio:
 
     @property
     def summary(self):
-        out = {'percent change': self.percent_change_per_ticker,
+        out = {'transactions': self.transactions_per_ticker,
+               'percent change': self.percent_change_per_ticker,
                'portfolio value': self.total_value_global,
                'current number of shares': self.open_shares_per_ticker,
                'current sold shares': self.closed_shares_per_ticker,
+               'total bought shares': self.total_shares_per_ticker,
                'average cost': self.averaged_cost_per_ticker,
-               'profit/lost': 0,
-               'unrealized gain': 0
+               'profit/lost': self.profit_loss_per_ticker,
+               'unrealized gain': self.unrealized_gain_per_ticker,
                }
         return out
 
@@ -66,3 +69,19 @@ class Portfolio:
     @property
     def total_value_global(self):
         return np.sum([t.total_invested.loc[~t.returns.isna()].iloc[-1] for t in self.tickers])
+
+    @property
+    def profit_loss_per_ticker(self):
+        return {t.ticker: t.current_profit_loss for t in self.tickers}
+
+    @property
+    def unrealized_gain_per_ticker(self):
+        return {t.ticker: t.current_unrealized_gain for t in self.tickers}
+
+    @property
+    def transactions_per_ticker(self):
+        out = defaultdict(list)
+        for t in self.tickers:
+            for p in t.positions:
+                out['ticker'].append(p.__str__())
+        return out

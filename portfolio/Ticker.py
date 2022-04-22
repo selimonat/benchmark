@@ -124,7 +124,7 @@ class Ticker:
     @property
     def total_shares(self):
         # both closed and open shares.
-        return self.investment.shape[1]
+        return float(self.investment.shape[1])
 
     @property
     def current_sold_shares(self):
@@ -148,3 +148,12 @@ class Ticker:
     @property
     def average_cost_per_share(self):
         return self.total_invested / self.total_shares
+
+    @property
+    def current_profit_loss(self):
+        return self.profit_loss.iloc[-1].sum().astype(float)
+
+    @property
+    def current_unrealized_gain(self):
+        return self.unrealized_gain.iloc[-1].sum().astype(float)
+
