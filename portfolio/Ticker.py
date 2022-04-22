@@ -32,6 +32,8 @@ class Ticker:
         else:
             raise Exception("No positions are given...")
         self.ticker_value = db.read(self.ticker, self.time_line, output_format='series')
+        # TODO: if the returned value is NaN because the db is not yet updated, then you will have columns for shares
+        #  (bought "today") filled with nans. We need a procedure for avoiding this.
         if value is not None:
             self.ticker_value = pd.Series(data=value,
                                           index=self.time_line,
