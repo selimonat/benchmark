@@ -35,7 +35,8 @@ class Position:
             self.cost = cost
 
     def __str__(self):
-        return f"{self.action[:3]} {self.quantity:5} {self.ticker} {self.cost:5}$({self.commission:2}$) {self.date}s " \
+        return f"{self.action[:3]} {self.quantity:5} {self.ticker} for {self.cost:5.2f}$ ({self.commission:5.2f}$)" \
+               f" {self.date}s " \
                f"(" \
                f"{utils.parse_epoch(self.date)})"
 
