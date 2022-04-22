@@ -57,3 +57,20 @@ def test_unbalanced():
     r = (r1 * cost1 * quantity1 + r2 * cost2 * quantity2) / (cost1 * quantity1 + cost2 * quantity2)
 
     assert p.returns.values == r
+
+
+def test_shares_quantities():
+    cost = 100  # arbitrary number
+    # generate 5 positions of buys and sells for 2 tickers.
+    pos1 = Position(action='buy', quantity=10, ticker='FB', date=utils.today() - 24 * 60 * 60 * 149, cost=cost)
+    pos2 = Position(action='buy', quantity=10, ticker='GOOG', date=utils.today() - 24 * 60 * 60 * 100, cost=cost)
+    pos3 = Position(action='sell', quantity=5, ticker='FB', date=utils.today() - 24 * 60 * 60 * 50, cost=cost)
+    pos4 = Position(action='buy', quantity=10, ticker='FB', date=utils.today(), cost=cost)
+    pos5 = Position(action='sell', quantity=5, ticker='GOOG', date=utils.today(), cost=cost)
+    #
+    p = Portfolio([Ticker([pos1, pos3, pos4]),
+                   Ticker([pos2, pos5])
+                   ])
+    assert np.sum(list(p.total_shares.values())) == \
+           (np.sum(list(p.open_shares.values())) +
+            np.sum(list(p.closed_shares.values())))
