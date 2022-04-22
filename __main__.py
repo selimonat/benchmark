@@ -3,9 +3,7 @@ from portfolio.Parser import PortfolioParser
 from portfolio.Plotter import console_plot
 from portfolio.Portfolio import Portfolio
 from portfolio.Database import DB
-import pandas as pd
 import json
-from pprint import pprint
 
 from downloader.__main__ import updater
 
