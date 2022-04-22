@@ -143,7 +143,6 @@ def test_parameters_for_buy_two_sell_one_lot():
     # due to the FIFO principle we sold 5 shares from the first lot, which corresponds to quantity1-quantity3
     cost = cost1*(quantity1-quantity3) + cost2*quantity2
 
-    1
     assert isclose(t.returns.values, (value-cost)/cost*100)
     assert t.total_shares == quantity1 + quantity2
     assert t.current_sold_shares == quantity3
