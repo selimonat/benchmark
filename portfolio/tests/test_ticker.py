@@ -119,25 +119,36 @@ def test_parameters_for_bought_different_shares_two_lots():
 
 
 def test_parameters_for_buy_two_sell_one_lot():
+    # first batch bought 10 at 110
     quantity1 = 10
     cost1 = 110
     pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today(), cost=cost1)
+    # Second batch, bought 1 at 100
     quantity2 = 1
     cost2 = 100
     pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=utils.today(), cost=cost2)
+    # Sold 5
     quantity3 = 5
     cost3 = 110
     pos3 = Position(action='sell', quantity=quantity3, ticker='FB', date=utils.today(), cost=cost3)
+    # today the value is 110.
     current_value = 110
     t = Ticker([pos1, pos2, pos3], value=[current_value])
 
+    # number of shares I have today
     quantity = quantity1 - quantity3 + quantity2
-    cost = cost1*(quantity1-quantity3) + cost2*quantity2
+    # their overall value
     value = current_value*quantity
+    # how much the current portfolio cost us, this is the invested amount.
+    # due to the FIFO principle we sold 5 shares from the first lot, which corresponds to quantity1-quantity3
+    cost = cost1*(quantity1-quantity3) + cost2*quantity2
 
+    1
     assert isclose(t.returns.values, (value-cost)/cost*100)
     assert t.total_shares == quantity1 + quantity2
-    assert t.profit_loss.sum(axis=1).values == current_value*quantity3
+    assert t.current_sold_shares == quantity3
+    assert t.current_open_shares == quantity
+    assert t.profit_loss.sum(axis=1).values == current_value*quantity3 - cost1*quantity3
     assert t.unrealized_gain.values == current_value*quantity - (cost1*5+cost2)
     assert t.total_invested.values == (cost1*(quantity1-quantity3) + cost2*quantity2)
     assert t.current_open_shares == quantity
@@ -169,3 +180,30 @@ def test_return_at_purchase_date():
     pos1 = Position(action='buy', quantity=1, ticker='FB', date=date)
     t = Ticker([pos1])
     assert t.returns[date] == 0
+
+
+def test_unrealized_gains():
+    quantity = 10
+    cost = 100
+    value = 200
+    pos1 = Position(action='buy', quantity=quantity, ticker='FB', date=utils.today()-24*60*60*100, cost=cost)
+    ticker = Ticker([pos1], value=value)
+    assert ticker.unrealized_gain.iloc[-1] == (value-cost) * quantity
+
+
+def test_profit_loss():
+    quantity_to_buy = 10
+    quantity_to_sell = 5
+    bought_at = 100
+    value = sold_at = 200
+    pos1 = Position(action='buy', quantity=quantity_to_buy, ticker='FB', date=utils.today()-24*60*60*100,
+                    cost=bought_at)
+    pos2 = Position(action='sell', quantity=quantity_to_sell, ticker='FB', date=utils.today()-24*60*60*50)
+    ticker = Ticker([pos1, pos2], value=value)
+
+    # bought 10 shares at 100$, spent 1000$
+    # at some point sold 5 of them for 150 for 150*5=750$.
+    # this corresponds to 50*5 = 250$ profit.
+
+    assert ticker.profit_loss.iloc[-1].sum() == quantity_to_sell*(sold_at-bought_at)
+    assert ticker.unrealized_gain.iloc[-1].sum() == (quantity_to_buy-quantity_to_sell) * (value - bought_at)

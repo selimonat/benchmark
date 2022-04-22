@@ -96,7 +96,8 @@ class Ticker:
             invalid = self.investment.index >= pos.date
 
             self.logger.info('Profit/Loss will be updated following this transaction')
-            self.profit_loss.loc[invalid, current_share] = self.value.loc[invalid, current_share]
+            self.profit_loss.loc[invalid, current_share] = \
+                self.value.loc[invalid, current_share] - self.investment.loc[invalid, current_share]
 
             self.logger.info(f'All time points bigger than {pos.date} will be nanized for share {current_share}.')
             self.investment.loc[invalid, current_share] = np.nan
