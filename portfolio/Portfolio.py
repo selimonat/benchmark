@@ -25,6 +25,7 @@ class Portfolio:
     @property
     def summary(self):
         out = {'transactions': self.transactions_per_ticker,
+               'current value': self.current_value_per_ticker,
                'percent change': self.percent_change_per_ticker,
                'portfolio value': self.total_value_global,
                'current number of shares': self.open_shares_per_ticker,
@@ -85,3 +86,7 @@ class Portfolio:
             for p in t.positions:
                 out['ticker'].append(p.__str__())
         return out
+
+    @property
+    def current_value_per_ticker(self):
+        return {t.ticker: t.current_value for t in self.tickers}

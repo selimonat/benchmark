@@ -157,3 +157,12 @@ class Ticker:
     def current_unrealized_gain(self):
         return self.unrealized_gain.iloc[-1].sum().astype(float)
 
+    @property
+    def current_value(self):
+        # returns the last available value of the ticker.
+        # using max as a convenience, there could be nans in the row
+        valid_rows = self.value.isna().sum(axis=1) != self.value.shape[1]
+        value = self.value.loc[valid_rows]
+        last_available_date = value.index.max()
+        return value.loc[last_available_date].max().astype(float)
+
