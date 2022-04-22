@@ -38,7 +38,7 @@ def test_balanced():
     r2 = 100 * (value * quantity2 - cost2 * quantity2) / (cost2 * quantity2)
     r = (r1 * cost1 * quantity1 + r2 * cost2 * quantity2) / (cost1 * quantity1 + cost2 * quantity2)
 
-    assert p.returns.values == r
+    assert p.returns_global.values == r
 
 
 def test_unbalanced():
@@ -56,7 +56,7 @@ def test_unbalanced():
     r2 = 100 * (value - cost2) / cost2
     r = (r1 * cost1 * quantity1 + r2 * cost2 * quantity2) / (cost1 * quantity1 + cost2 * quantity2)
 
-    assert p.returns.values == r
+    assert p.returns_global.values == r
 
 
 def test_shares_quantities():
@@ -71,6 +71,6 @@ def test_shares_quantities():
     p = Portfolio([Ticker([pos1, pos3, pos4]),
                    Ticker([pos2, pos5])
                    ])
-    assert np.sum(list(p.total_shares.values())) == \
-           (np.sum(list(p.open_shares.values())) +
-            np.sum(list(p.closed_shares.values())))
+    assert np.sum(list(p.total_shares_per_ticker.values())) == \
+           (np.sum(list(p.open_shares_per_ticker.values())) +
+            np.sum(list(p.closed_shares_per_ticker.values())))

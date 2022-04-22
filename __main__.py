@@ -45,7 +45,7 @@ def returns_time_course(filename: str):
     """
     pp = PortfolioParser(filename)
     p = Portfolio(pp.tickers)
-    console_plot(p.returns)
+    console_plot(p.returns_global)
 
 
 @app.command()
