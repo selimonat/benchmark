@@ -118,7 +118,7 @@ class Ticker:
 
     @property
     def current_open_shares(self):
-        return self.investment.iloc[-1, :].notna().sum()
+        return self.investment.iloc[-1, :].notna().sum().astype(float)
 
     @property
     def total_shares(self):
@@ -127,7 +127,7 @@ class Ticker:
 
     @property
     def current_sold_shares(self):
-        return self.investment.iloc[-1, :].isna().sum()
+        return self.investment.iloc[-1, :].isna().sum().astype(float)
 
     @property
     def total_invested(self):
