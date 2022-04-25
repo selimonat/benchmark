@@ -4,8 +4,14 @@ from portfolio.Position import Position
 from portfolio import utils
 import pytest
 import numpy as np
-from math import isclose
 import datetime
+
+# some example dates.
+a_monday = 1649635200
+a_tuesday = a_monday + 24 * 60 * 60
+a_wednesday = a_tuesday + 24 * 60 * 60
+a_thursday = a_wednesday + 24 * 60 * 60
+a_friday = a_thursday + 24 * 60 * 60
 
 
 def test_non_homogenous_ticker_list():
@@ -50,8 +56,8 @@ def test_parameters_for_bought_one_share_one_lot():
     cost1 = 100
     value = 110
 
-    pos = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today(), cost=cost1)
-    t = Ticker([pos], value=value)
+    pos = Position(action='buy', quantity=quantity1, ticker='FB', date=a_monday, cost=cost1)
+    t = Ticker([pos], value=[value])
 
     assert t.current_open_shares == quantity1
     assert t.current_closed_shares == 0
@@ -67,11 +73,11 @@ def test_parameters_for_bought_one_share_one_lot():
 def test_parameters_for_bought_one_share_two_lots():
     quantity1 = 10
     cost1 = 100
-    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today() - 24 * 60 * 60, cost=cost1)
+    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=a_monday, cost=cost1)
 
     quantity2 = 5
     cost2 = 150
-    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=utils.today(), cost=cost2)
+    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=a_tuesday, cost=cost2)
 
     value = 200
     t = Ticker([pos1, pos2], value=value, clean_weekends=False)
@@ -90,11 +96,11 @@ def test_parameters_for_bought_one_share_two_lots():
 def test_parameters_for_bought_different_shares_two_lots():
     quantity1 = 10
     cost1 = 110
-    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today(), cost=cost1)
+    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=a_monday, cost=cost1)
 
     quantity2 = 1
     cost2 = 100
-    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=utils.today(), cost=cost2)
+    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=a_tuesday, cost=cost2)
 
     current_value = 110
     t = Ticker([pos1, pos2], value=[current_value])
@@ -118,18 +124,18 @@ def test_parameters_for_buy_two_sell_one_lot():
     # first batch bought 10 at 110
     quantity1 = 10
     cost1 = 110
-    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today() - 24 * 60 * 60 * 2, cost=cost1)
+    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=a_monday, cost=cost1)
     # Second batch, bought 1 at 100
     quantity2 = 1
     cost2 = 100
-    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=utils.today() - 24 * 60 * 60, cost=cost2)
+    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=a_tuesday, cost=cost2)
     # Sold 5
     quantity3 = 5
 
-    pos3 = Position(action='sell', quantity=quantity3, ticker='FB', date=utils.today())
+    pos3 = Position(action='sell', quantity=quantity3, ticker='FB', date=a_wednesday)
     # today the value is 110.
     current_value = 110
-    t = Ticker([pos1, pos2, pos3], value=[cost1, cost2, current_value], clean_weekends=False)
+    t = Ticker([pos1, pos2, pos3], value=[cost1, cost2, current_value], today=a_wednesday)
 
     # number of shares I have today
     quantity = quantity1 - quantity3 + quantity2
@@ -155,9 +161,9 @@ def test_1():
     # Tests the mat_* dataframe and tc_* properties.
     quantity1 = 2
     cost1 = 100
-    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today() - 24 * 60 * 60 * 1, cost=cost1)
+    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=a_monday, cost=cost1)
     current_value = 110
-    t = Ticker([pos1], value=[cost1, current_value], clean_weekends=False)
+    t = Ticker([pos1], value=[cost1, current_value], today=a_tuesday)
 
     assert (t.mat_investment.values == np.vstack([[cost1, cost1], [cost1, cost1]])).all()
     assert (t.mat_value.values == np.vstack([[100, 100], [110, 110]])).all()
@@ -176,14 +182,14 @@ def test_2():
     # Tests the mat_* dataframe and tc_* properties.
     quantity1 = 2
     cost1 = 100
-    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today() - 24 * 60 * 60 * 2, cost=cost1)
+    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=a_monday, cost=cost1)
 
     quantity2 = 1
     cost2 = 120
-    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=utils.today() - 24 * 60 * 60 * 1, cost=cost2)
+    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=a_tuesday, cost=cost2)
 
     current_value = 150
-    t = Ticker([pos1, pos2], value=[cost1, cost2, current_value], clean_weekends=False)
+    t = Ticker([pos1, pos2], value=[cost1, cost2, current_value], today=a_wednesday)
 
     assert np.array_equal(t.mat_investment.values, np.vstack([[100, 100, np.nan], [100, 100, 120], [100, 100, 120]]),
                           equal_nan=True)
@@ -203,22 +209,22 @@ def test_3():
     # opening two positions, closing one. and opening another one. Tests the mat_* dataframe and tc_* properties.
     quantity1 = 2
     cost1 = 100
-    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today() - 24 * 60 * 60 * 4, cost=cost1)
+    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=a_monday, cost=cost1)
 
     quantity2 = 1
     cost2 = 120
-    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=utils.today() - 24 * 60 * 60 * 3, cost=cost2)
+    pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=a_tuesday, cost=cost2)
 
     quantity3 = 2
     cost3 = 150  # unused for position but used as value in Ticker
-    pos3 = Position(action='sell', quantity=quantity3, ticker='FB', date=utils.today() - 24 * 60 * 60 * 2)
+    pos3 = Position(action='sell', quantity=quantity3, ticker='FB', date=a_wednesday)
 
     quantity4 = 1
     cost4 = 150
-    pos4 = Position(action='buy', quantity=quantity4, ticker='FB', date=utils.today() - 24 * 60 * 60, cost=cost4)
+    pos4 = Position(action='buy', quantity=quantity4, ticker='FB', date=a_thursday, cost=cost4)
 
     current_value = 150
-    t = Ticker([pos1, pos2, pos3, pos4], value=[cost1, cost2, cost3, cost4, current_value], clean_weekends=False)
+    t = Ticker([pos1, pos2, pos3, pos4], value=[cost1, cost2, cost3, cost4, current_value], today=a_friday)
 
     assert np.array_equal(t.mat_investment.values, np.vstack([[100, 100, np.nan, np.nan],
                                                               [100, 100, 120, np.nan],
@@ -253,28 +259,18 @@ def test_3():
 
 
 def test_not_enough_shares_to_sell():
-    pos = Position(action='sell', quantity=3, ticker='FB', date=utils.today())
+    pos = Position(action='sell', quantity=3, ticker='FB', date=a_monday)
     with pytest.raises(Exception) as exception:
         Ticker([pos])
     assert 'You do not have enough shares to sell.' == str(exception.value)
 
 
-def test_timeline_should_not_have_any_weekends():
-    quantity1 = 10
-    cost1 = 110
-    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today() - 24 * 60 * 60 * 100, cost=cost1)
-    ticker = Ticker([pos1])
-
-    assert np.all([datetime.datetime.fromtimestamp(t).weekday() <= 4 for t in ticker.time_line])
-
-
 def test_return_at_purchase_date():
     #  The return must be 0% at the purchase date.
 
-    date = 1637884800  # This is not a weekend, but the test fails when date is weekend (see test below)
-    pos1 = Position(action='buy', quantity=1, ticker='FB', date=date)
+    pos1 = Position(action='buy', quantity=1, ticker='FB', date=a_monday)
     t = Ticker([pos1])
-    assert t.tc_returns[date] == 0
+    assert t.tc_returns[a_monday] == 0
 
 
 def test_return_at_purchase_date_weekend():
@@ -282,16 +278,16 @@ def test_return_at_purchase_date_weekend():
 
     # open a FB position 149 days before today
     # this is interesting if 150 days, then it doesn't work, it is probably a holiday or so.
-    date = 1637971200  # the test may fail if the day is a weekend day.
-    pos1 = Position(action='buy', quantity=1, ticker='FB', date=date)
-    t = Ticker([pos1])
-    assert t.tc_returns[date] == 0
+    date = a_monday - 24 * 60 * 60  # the test may fail if the day is a weekend day.
+    with pytest.raises(Exception) as exception:
+        pos1 = Position(action='buy', quantity=1, ticker='FB', date=date)
+    assert f"{date} is a weekend, I will not be able to retrieve asset value." == str(exception.value)
 
 
 def test_unrealized_gains():
     quantity = 10
     cost = 100
     value = 200
-    pos1 = Position(action='buy', quantity=quantity, ticker='FB', date=utils.today() - 24 * 60 * 60 * 100, cost=cost)
+    pos1 = Position(action='buy', quantity=quantity, ticker='FB', date=a_monday, cost=cost)
     ticker = Ticker([pos1], value=value)
     assert ticker.tc_unrealized_gain.iloc[-1] == (value - cost) * quantity

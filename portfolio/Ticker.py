@@ -18,13 +18,15 @@ class Ticker:
     current_* are scalars or row vectors representing the most recent value.
     """
 
-    def __init__(self, positions: Sequence[Position], value=None, clean_weekends=True):
+    def __init__(self, positions: Sequence[Position], value=None, clean_weekends=True, today=None):
         """
         Args:
             positions: List of Position classes.
             value: Use this for testing purposes to overwrite the mat_value ticker mat_value.
             clean_weekends: Boolean to filter out weekend days from the time line.
+            today: Should the time_line be built using all the time points until today.
         """
+        self.today = utils.today() if today is None else today
         self.clean_weekends = clean_weekends
         self.logger = utils.get_logger(__name__)
         self.positions = positions
@@ -42,9 +44,10 @@ class Ticker:
         #   remove full nan rows.
 
         if value is not None:
-            self.tc_ticker_value = pd.Series(data=value,
-                                          index=self.time_line,
-                                          )
+            value = utils.ensure_iterable(value)
+            self.tc_ticker_value = pd.Series(data=value * len(self.time_line) if len(value) == 1 else value,
+                                             index=self.time_line,
+                                             )
         # TODO: Remove rows which are all nan.
 
         self.shares = list()
@@ -126,11 +129,12 @@ class Ticker:
     @property
     def time_line(self):
         """
-        Computes the time index for all dataframes. It excludes weekends.
+        Computes the time index for all dataframes.
+        It excludes weekends. It starts from the first date a position is open and stops at self.today.
         """
         step_size = (60 * 60 * 24)
         dummy = np.arange(min([pos.date for pos in self.positions]),
-                          utils.today() + step_size,  # if step_size not added it will exclude
+                          self.today + step_size,  # if step_size not added it will exclude
                           # today
                           step_size,
                           dtype=int) if len(self.positions) != 0 else []
