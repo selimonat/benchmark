@@ -12,15 +12,20 @@ db = DB()
 class Ticker:
     """
     An ensemble of positions under the same ticker label.
-    Keeps track of 3 variables: investment, current_price and profit/loss, all aligned on the same time-axis.
+    Keeps track of 3 variables: investment, value and profit/loss, all aligned on the same time-axis.
+    mat_* are matrices organized as (time, n_shares)
+    tc_* are column vectors representing time-courses.
+    current_* are scalars or row vectors representing the most recent value.
     """
 
-    def __init__(self, positions: Sequence[Position], value=None):
+    def __init__(self, positions: Sequence[Position], value=None, clean_weekends=True):
         """
         Args:
             positions: List of Position classes.
-            value: Use this for testing purposes to overwrite the value ticker value.
+            value: Use this for testing purposes to overwrite the mat_value ticker mat_value.
+            clean_weekends: Boolean to filter out weekend days from the time line.
         """
+        self.clean_weekends = clean_weekends
         self.logger = utils.get_logger(__name__)
         self.positions = positions
         # check if all positions are from the same ticker
@@ -31,20 +36,28 @@ class Ticker:
             raise Exception("There are different tickers in the positions list...")
         else:
             raise Exception("No positions are given...")
-        self.ticker_value = db.read(self.ticker, self.time_line, output_format='series')
-        # TODO: if the returned value is NaN because the db is not yet updated, then you will have columns for shares
-        #  (bought "today") filled with nans. We need a procedure for avoiding this.
+        self.tc_ticker_value = db.read(self.ticker, self.time_line, output_format='series')
+        #  TODO: if the returned mat_value is NaN because the db is not yet updated, then you will have columns for
+        #   shares (bought "today") filled with nans. We need a procedure for avoiding this. One simply needs to
+        #   remove full nan rows.
+
         if value is not None:
-            self.ticker_value = pd.Series(data=value,
+            self.tc_ticker_value = pd.Series(data=value,
                                           index=self.time_line,
                                           )
+        # TODO: Remove rows which are all nan.
 
         self.shares = list()
-        self.value = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
-        self.investment = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
-        self.profit_loss = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
+        self.mat_value = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
+        self.mat_investment = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
+        self.mat_profit_loss = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
+        # counter_* are incremented when shares are bought or sold. Their difference is the number of open shares.
+        self.tc_counter_buy = pd.Series(data=0, index=pd.Index(self.time_line, name='date'), name='buy_counter')
+        self.tc_counter_sell = pd.Series(data=0, index=pd.Index(self.time_line, name='date'), name='sell_counter')
 
         self.update()
+
+        #  TODO: Raise an exception when a column is just NaN.
 
     def __str__(self):
         return ''.join([f"Pos#{i}: {pos.__str__()}\n" for i, pos in enumerate(self.positions)])
@@ -60,50 +73,55 @@ class Ticker:
                 self.close_position(pos)
 
     def add_position(self, pos: Position):
-        # A position can have multiple shares, run across them.
-        #  TODO: implementation improvement, remove the for loop
-        for share in range(pos.quantity):
+        """
+        Updates mat_* matrices by adding new columns from the right side for each share.
+        """
+        for share in range(pos.quantity):  # TODO: implementation improvement, remove the for loop
             self.shares.append(len(self.shares))
             current_share = self.shares[-1]
             self.logger.info(f'Adding share {current_share}.')
-            # fill up investment
-            self.investment[current_share] = pos.cost
-            invalid = self.investment.index < pos.date
-            self.investment.loc[invalid, current_share] = np.nan
+            # fill up mat_investment
+            self.mat_investment[current_share] = pos.cost
+            invalid = self.mat_investment.index < pos.date  # invalid indices are prior to position opening.
+            self.mat_investment.loc[invalid, current_share] = np.nan
 
             # fill up price
-            self.value[current_share] = self.ticker_value
-            self.value.loc[invalid, current_share] = np.nan
+            self.mat_value[current_share] = self.tc_ticker_value
+            self.mat_value.loc[invalid, current_share] = np.nan
 
-            # fill up profit_loss
-            self.profit_loss[current_share] = 0
-            self.profit_loss.loc[invalid, current_share] = np.nan
+            # fill up mat_profit_loss
+            self.mat_profit_loss[current_share] = 0
+            self.mat_profit_loss.loc[invalid, current_share] = np.nan
+
+            # increment the share counter
+            self.tc_counter_buy.loc[~invalid] += 1  # all valid points, including the date the position is open are
+            # incremented by 1.
 
     def close_position(self, pos: Position):
         """
-        # Implements FIFO logic for selling shares ie sells shares that were bought first. For all sold shares,
+        Updates 3 dataframes: mat_investment, profit_lost, mat_value.
+        Implements FIFO logic for selling shares ie sells shares that were bought first. For all sold shares,
         time-series are NaNized for all time-points coming after the sell transaction.
 
-        Args:
-            pos: (Position)
-
-        Returns:
-            Updates 3 dataframes: investment, profit_lost, value.
         """
         if len(self.shares) < abs(pos.quantity):
             raise ValueError('You do not have enough shares to sell.')
 
         for share in range(abs(pos.quantity)):
-            current_share = self.investment.loc[pos.date].notna().idxmax()
-            invalid = self.investment.index >= pos.date
+            current_share = self.mat_investment.loc[pos.date].notna().idxmax()
+            invalid = self.mat_investment.index >= pos.date  # all time points after the positions are closed are
+            # invalid.
 
             self.logger.info('Profit/Loss will be updated following this transaction')
-            self.profit_loss.loc[invalid, current_share] = \
-                self.value.loc[invalid, current_share] - self.investment.loc[invalid, current_share]
+            self.mat_profit_loss.loc[invalid, current_share] = \
+                self.mat_value.loc[invalid, current_share] - self.mat_investment.loc[invalid, current_share]
 
             self.logger.info(f'All time points bigger than {pos.date} will be nanized for share {current_share}.')
-            self.investment.loc[invalid, current_share] = np.nan
-            self.value.loc[invalid, current_share] = np.nan
+            self.mat_investment.loc[invalid, current_share] = np.nan
+            self.mat_value.loc[invalid, current_share] = np.nan
+
+            # decrement the share counter
+            self.tc_counter_sell.loc[invalid] += 1
 
     @property
     def time_line(self):
@@ -112,59 +130,117 @@ class Ticker:
         """
         step_size = (60 * 60 * 24)
         dummy = np.arange(min([pos.date for pos in self.positions]),
-                          utils.today() + step_size,  # if step_size not added it will exclude today
+                          utils.today() + step_size,  # if step_size not added it will exclude
+                          # today
                           step_size,
                           dtype=int) if len(self.positions) != 0 else []
         # exclude weekends
         weekends = [datetime.datetime.fromtimestamp(ts).weekday() <= 4 for ts in dummy]
-        return dummy[weekends]
+        self.logger.info(f"Will remove {np.sum(weekends)} weekend days from the time line")
+        return dummy[weekends] if self.clean_weekends else dummy
+
+    # ######################################################
+    # Parameters directly coming from the mat_* dataframes.
+    # Time-Courses (TC).
 
     @property
-    def current_open_shares(self):
-        return self.investment.iloc[-1, :].notna().sum().astype(float)
+    def tc_invested(self):
+        # total money that has been invested.
+        return self.mat_investment.sum(axis=1)
 
     @property
-    def total_shares(self):
-        # both closed and open shares.
-        return float(self.investment.shape[1])
+    def tc_cost(self):
+        # synonym of invested
+        return self.tc_invested
 
     @property
-    def current_sold_shares(self):
-        return self.investment.iloc[-1, :].isna().sum().astype(float)
+    def tc_profit_loss(self):
+        return self.mat_profit_loss.sum(axis=1, skipna=True, min_count=1)
 
     @property
-    def total_invested(self):
-        # total money that is currently invested.
-        return self.investment.sum(axis=1)
+    def tc_value(self):
+        # portfolio value
+        return self.mat_value.sum(axis=1, skipna=True, min_count=1)
+
+    # ######################################################
+    # Derivative Parameters
 
     @property
-    def returns(self):
-        I = self.investment.sum(axis=1, skipna=True, min_count=1)
-        V = self.value.sum(axis=1, skipna=True, min_count=1)
-        return 100 * (V - I) / I
+    def tc_unrealized_gain(self):
+        return (self.mat_value - self.mat_investment).sum(axis=1, skipna=True, min_count=1)
 
     @property
-    def unrealized_gain(self):
-        return (self.value - self.investment).sum(axis=1)
+    def tc_returns(self):
+        return 100 * self.tc_unrealized_gain / self.tc_cost
 
     @property
-    def average_cost_per_share(self):
-        return self.total_invested / self.total_shares
+    def tc_average_cost_per_share(self):
+        return self.tc_invested / self.tc_open_shares
+
+    # ######################################################
+    # Share counts:
 
     @property
-    def current_profit_loss(self):
-        return self.profit_loss.iloc[-1].sum().astype(float)
+    def tc_total_shares(self):
+        # total number of shares that were ever transacted (buys + sells together)
+        return self.tc_counter_buy
 
     @property
-    def current_unrealized_gain(self):
-        return self.unrealized_gain.iloc[-1].sum().astype(float)
+    def tc_open_shares(self):
+        # number of shares that are currently open
+        return self.tc_counter_buy-self.tc_counter_sell
+
+    # ######################################################
+    # Same as above but extract the CURRENT_VALUE ie take only the last value, this could be automatized at class level.
+    # Get the last element of all tc_* properties.
 
     @property
     def current_value(self):
-        # returns the last available value of the ticker.
+        # returns the last available mat_value .
         # using max as a convenience, there could be nans in the row
-        valid_rows = self.value.isna().sum(axis=1) != self.value.shape[1]
-        value = self.value.loc[valid_rows]
-        last_available_date = value.index.max()
-        return value.loc[last_available_date].max().astype(float)
+        return self.tc_value.iloc[-1].astype(float)
 
+    @property
+    def current_invested(self):
+        return self.tc_invested.iloc[-1].astype(float)
+
+    @property
+    def current_cost(self):
+        return self.tc_cost.iloc[-1].astype(float)
+
+    @property
+    def current_profit_loss(self):
+        return self.tc_profit_loss.iloc[-1].sum().astype(float)
+
+    @property
+    def current_value(self):
+        return self.tc_value.iloc[-1].astype(float)
+
+    @property
+    def current_ticker_value(self):
+        return self.tc_ticker_value.iloc[-1].astype(float)
+
+    @property
+    def current_average_cost_per_share(self):
+        return self.tc_average_cost_per_share.iloc[-1].astype(float)
+
+    @property
+    def current_open_shares(self):
+        return self.tc_open_shares.iloc[-1].astype(float)
+
+    @property
+    def current_total_shares(self):
+        return self.tc_counter_buy.iloc[-1].astype(float)
+
+    @property
+    def current_returns(self):
+        return self.tc_returns.iloc[-1].astype(float)
+
+    @property
+    def current_unrealized_gain(self):
+        return self.tc_unrealized_gain.iloc[-1].astype(float)
+
+    @property
+    def current_closed_shares(self):
+        # number of shares that were sold up until today.
+        return self.tc_counter_sell.iloc[-1].astype(float)
