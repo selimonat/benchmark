@@ -194,6 +194,11 @@ class Ticker:
         # number of shares that are currently open
         return self.tc_counter_buy-self.tc_counter_sell
 
+    @property
+    def tc_closed_shares(self):
+        # number of shares that were sold
+        return self.tc_counter_sell
+
     # ######################################################
     # Same as above but extract the CURRENT_VALUE ie take only the last value, this could be automatized at class level.
     # Get the last element of all tc_* properties.

@@ -40,8 +40,8 @@ class Portfolio:
     # properties are organized to be specific either for tickers or for the portfolio (ie. all tickers).
     @property
     def returns_global(self):
-        a = pd.concat([t.returns for t in self.tickers], axis=1)  # returns
-        w = pd.concat([t.total_invested for t in self.tickers], axis=1)  # weights
+        a = pd.concat([t.tc_returns for t in self.tickers], axis=1)  # returns
+        w = pd.concat([t.tc_invested for t in self.tickers], axis=1)  # weights
         s = (a * w).sum(axis=1, skipna=False) / w.sum(axis=1, skipna=False)  # weighted average.
         s.name = 'returns'
         return s
@@ -49,15 +49,15 @@ class Portfolio:
     @property
     def percent_change_per_ticker(self):
         # the most recent return value as computed by self.returns..
-        return {t.ticker: t.returns.loc[~t.returns.isna()].iloc[-1] for t in self.tickers}
+        return {t.ticker: t.tc_returns.loc[~t.tc_returns.isna()].iloc[-1] for t in self.tickers}
 
     @property
     def averaged_cost_per_ticker(self):
-        return {t.ticker: t.total_invested.iloc[-1] / t.total_shares for t in self.tickers}
+        return {t.ticker: t.current_average_cost_per_share for t in self.tickers}
 
     @property
     def total_shares_per_ticker(self):
-        return {t.ticker: t.total_shares for t in self.tickers}
+        return {t.ticker: t.current_total_shares for t in self.tickers}
 
     @property
     def open_shares_per_ticker(self):
@@ -65,11 +65,11 @@ class Portfolio:
 
     @property
     def closed_shares_per_ticker(self):
-        return {t.ticker: t.current_sold_shares for t in self.tickers}
+        return {t.ticker: t.current_closed_shares for t in self.tickers}
 
     @property
     def total_value_global(self):
-        return np.sum([t.total_invested.loc[~t.returns.isna()].iloc[-1] for t in self.tickers])
+        return np.sum([t.tc_invested.loc[~t.tc_returns.isna()].iloc[-1] for t in self.tickers])
 
     @property
     def profit_loss_per_ticker(self):

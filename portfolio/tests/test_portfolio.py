@@ -1,7 +1,5 @@
 from portfolio import utils
-from portfolio.Parser import PortfolioParser
 from dateutil.parser import parse
-import pandas as pd
 from portfolio.Portfolio import Portfolio
 from portfolio.Position import Position
 from portfolio.Ticker import Ticker
@@ -9,6 +7,13 @@ from portfolio import Database
 import numpy as np
 
 SECONDS_IN_A_DAY = (60 * 60 * 24)
+# some example dates.
+a_monday = 1649635200
+a_tuesday = a_monday + 24 * 60 * 60
+a_wednesday = a_tuesday + 24 * 60 * 60
+a_thursday = a_wednesday + 24 * 60 * 60
+a_friday = a_thursday + 24 * 60 * 60
+
 logger = utils.get_logger(__name__)
 
 db = Database.DB()
@@ -27,10 +32,10 @@ def test_return_integer():
 def test_balanced():
     quantity1, cost1 = 1, 100
     quantity2, cost2 = 1, 100
-    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today(), cost=cost1)
-    pos2 = Position(action='buy', quantity=quantity1, ticker='GOOG', date=utils.today(), cost=cost1)
+    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=a_monday, cost=cost1)
+    pos2 = Position(action='buy', quantity=quantity1, ticker='GOOG', date=a_monday, cost=cost1)
     value = 200
-    tickers = [Ticker([pos1], value=value), Ticker([pos2], value=value)]
+    tickers = [Ticker([pos1], value=value, today=a_monday), Ticker([pos2], value=value, today=a_monday)]
 
     p = Portfolio(tickers)
 
@@ -45,10 +50,10 @@ def test_unbalanced():
     quantity1, cost1 = 1, 100
     quantity2, cost2 = 10, 50
     value = 200
-    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=utils.today(), cost=cost1)
-    pos2 = Position(action='buy', quantity=quantity2, ticker='GOOG', date=utils.today(), cost=cost2)
+    pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=a_monday, cost=cost1)
+    pos2 = Position(action='buy', quantity=quantity2, ticker='GOOG', date=a_monday, cost=cost2)
 
-    tickers = [Ticker([pos1], value=value), Ticker([pos2], value=value)]
+    tickers = [Ticker([pos1], value=value, today=a_monday), Ticker([pos2], value=value, today=a_monday)]
 
     p = Portfolio(tickers)
 
@@ -62,14 +67,14 @@ def test_unbalanced():
 def test_shares_quantities():
     cost = 100  # arbitrary number
     # generate 5 positions of buys and sells for 2 tickers.
-    pos1 = Position(action='buy', quantity=10, ticker='FB', date=utils.today() - 24 * 60 * 60 * 149, cost=cost)
-    pos2 = Position(action='buy', quantity=10, ticker='GOOG', date=utils.today() - 24 * 60 * 60 * 100, cost=cost)
-    pos3 = Position(action='sell', quantity=5, ticker='FB', date=utils.today() - 24 * 60 * 60 * 50, cost=cost)
-    pos4 = Position(action='buy', quantity=10, ticker='FB', date=utils.today(), cost=cost)
-    pos5 = Position(action='sell', quantity=5, ticker='GOOG', date=utils.today(), cost=cost)
+    pos1 = Position(action='buy', quantity=10, ticker='FB', date=a_monday, cost=cost)
+    pos2 = Position(action='buy', quantity=10, ticker='GOOG', date=a_tuesday, cost=cost)
+    pos3 = Position(action='sell', quantity=5, ticker='FB', date=a_wednesday, cost=cost)
+    pos4 = Position(action='buy', quantity=10, ticker='FB', date=a_thursday, cost=cost)
+    pos5 = Position(action='sell', quantity=5, ticker='GOOG', date=a_thursday, cost=cost)
     #
-    p = Portfolio([Ticker([pos1, pos3, pos4]),
-                   Ticker([pos2, pos5])
+    p = Portfolio([Ticker([pos1, pos3, pos4], today=a_thursday),
+                   Ticker([pos2, pos5], today=a_thursday)
                    ])
     assert np.sum(list(p.total_shares_per_ticker.values())) == \
            (np.sum(list(p.open_shares_per_ticker.values())) +
