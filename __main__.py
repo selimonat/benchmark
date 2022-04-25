@@ -63,14 +63,18 @@ def portfolio_summary(filename: str):
 
 
 @app.command()
-def ticker_time_course(ticker=None):
+def ticker_plot(filename, ticker):
     """
-    Plot time course on the console.
+    Console-plot all tc_* variables in the Ticker object.
     Args:
+        filename: (str)
         ticker: (str)
     """
-    df = db.read(ticker, output_format='series')
-    console_plot(df)
+    pp = PortfolioParser(filename)
+    t = pp.grouped_tickers[ticker]
+    for tc in [fun for fun in t.__dir__() if fun[:2] == 'tc']:
+        print(tc)
+        console_plot(t.__getattribute__(tc))
 
 
 if __name__ == "__main__":
