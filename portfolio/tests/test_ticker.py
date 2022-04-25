@@ -271,9 +271,18 @@ def test_timeline_should_not_have_any_weekends():
 def test_return_at_purchase_date():
     #  The return must be 0% at the purchase date.
 
+    date = 1637884800  # This is not a weekend, but the test fails when date is weekend (see test below)
+    pos1 = Position(action='buy', quantity=1, ticker='FB', date=date)
+    t = Ticker([pos1])
+    assert t.tc_returns[date] == 0
+
+
+def test_return_at_purchase_date_weekend():
+    #  The return must be 0% at the purchase date.
+
     # open a FB position 149 days before today
     # this is interesting if 150 days, then it doesn't work, it is probably a holiday or so.
-    date = utils.today() - 24 * 60 * 60 * 149
+    date = 1637971200  # the test may fail if the day is a weekend day.
     pos1 = Position(action='buy', quantity=1, ticker='FB', date=date)
     t = Ticker([pos1])
     assert t.tc_returns[date] == 0
@@ -286,30 +295,3 @@ def test_unrealized_gains():
     pos1 = Position(action='buy', quantity=quantity, ticker='FB', date=utils.today() - 24 * 60 * 60 * 100, cost=cost)
     ticker = Ticker([pos1], value=value)
     assert ticker.tc_unrealized_gain.iloc[-1] == (value - cost) * quantity
-
-
-def test_profit_loss():
-    quantity_to_buy = 10
-    quantity_to_sell = 5
-    bought_at = 100
-    value = sold_at = 200
-    pos1 = Position(action='buy', quantity=quantity_to_buy, ticker='FB', date=utils.today() - 24 * 60 * 60 * 100,
-                    cost=bought_at)
-    pos2 = Position(action='sell', quantity=quantity_to_sell, ticker='FB', date=utils.today() - 24 * 60 * 60 * 50)
-    ticker = Ticker([pos1, pos2], value=value)
-
-    # bought 10 shares at 100$, spent 1000$
-    # at some point sold 5 of them for 150 for 150*5=750$.
-    # this corresponds to 50*5 = 250$ profit.
-
-    assert ticker.mat_profit_loss.iloc[-1].sum() == quantity_to_sell * (sold_at - bought_at)
-    assert ticker.tc_unrealized_gain.iloc[-1].sum() == (quantity_to_buy - quantity_to_sell) * (value - bought_at)
-
-
-def test_value_columns():
-    filename = '../examples/portfolio_05.csv'
-    pp = PortfolioParser(filename)
-    ticker = Ticker(pp.positions)
-    1
-    1
-    1
