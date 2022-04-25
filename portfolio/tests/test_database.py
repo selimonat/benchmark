@@ -76,8 +76,8 @@ def test_read_one_line_series():
 
 
 def test_returned_shape():
-    size_ = np.ceil(np.random.random(size=1) * 100)+1
-    time_point = np.ceil(np.random.random(size=int(size_[0])) * 100000)+1
+    size_ = np.ceil(np.random.random(size=1) * 100) + 1
+    time_point = np.ceil(np.random.random(size=int(size_[0])) * 100000) + 1
     value = np.random.random(size=int(size_[0])) * 100000
     ticker = 'AAPL__'
     s = pd.Series(value, name=ticker, index=pd.Index(data=time_point, name='date'))
@@ -94,7 +94,7 @@ def test_returned_shape():
     time.sleep(5)
     df_final = db.read(ticker=ticker, output_format='raw', index_name=test_index)
     final_size = df_final.shape[0]
-    print(f"new size: {final_size}, should be {old_size+to_be_added}")
+    print(f"new size: {final_size}, should be {old_size + to_be_added}")
     time.sleep(5)
     assert final_size == (old_size + to_be_added)
 
@@ -108,3 +108,17 @@ def test_equality_of_time_points():
     # Until this question is answered this test will fail, the next one is a related question.
     # also there lots of days where the data should be missing, such as holidays etc.
     assert np.all(df.index == indices)
+
+
+def test_weekend():
+    # Asking for a weekend we should get a nan, and when requested the nan must be filled in with the previous date.
+    a_friday = 1637971200 - 24 * 60 * 60
+    a_saturday = 1637971200
+    df = db.read(ticker='FB', date=[a_friday, a_saturday], fill_na=False)
+    assert df['Close'].isna().sum() == 1
+    df = db.read(ticker='FB', date=[a_friday, a_saturday], fill_na=True)
+    assert df['Close'].isna().sum() == 0
+    assert df['Close'].iloc[0] == df['Close'].iloc[1]  # because of forward filling
+    # test now with a unlikely time value, i.e. 0
+    df = db.read(ticker='FB', date=[0], fill_na=False)
+    assert df.index.isin([0])

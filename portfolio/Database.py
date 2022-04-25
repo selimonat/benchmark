@@ -46,7 +46,8 @@ class DB:
     def read(self, ticker: str,
              date: Optional[List] = None,
              index_name: Optional[AnyStr] = "time-series",
-             output_format: Optional[AnyStr] = "raw") -> Union[pd.Series, pd.DataFrame]:
+             output_format: Optional[AnyStr] = "raw",
+             fill_na: bool = True) -> Union[pd.Series, pd.DataFrame]:
         """
         Returns data for a given ticker. If no date is given all data is returned.
         Args:
@@ -54,6 +55,7 @@ class DB:
             index_name: name of the index_name, defaults to time-series
             ticker: (str) A Nasdaq ticker
             date: (list) timestamps, epoch seconds.
+            fill_na: (boolean) If True will fill nan using pandas. Defaults to True.
 
         Returns:
             series: A pandas Series named "price" showing time-course of a ticker, indexed on time.
@@ -85,7 +87,11 @@ class DB:
             df.columns.name = ticker
             # filter the requested time points
             if date is not None:
-                df = df.loc[df.index.isin(date)]
+                # left join with a df that contains all the requested time points.
+                # this will automatically create rows of NaN when the data was not present in the DB.
+                # as a side-effect ticker column will also contain nans, that's why I overwrite it that column
+                df = pd.DataFrame(index=pd.Index(date, name='date')).join(df, how='left')
+                df['ticker'] = ticker
 
             # if series is wanted than process it and convert it
             if output_format is "series":
@@ -95,6 +101,9 @@ class DB:
             self.logger.error(err)
         except AttributeError as err:
             self.logger.error(err)
+
+        if fill_na:
+            df.fillna(method='ffill', inplace=True)
         return df
 
     def write(self, index_name: AnyStr, df: pd.DataFrame) -> bool:
