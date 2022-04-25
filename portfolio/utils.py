@@ -61,3 +61,14 @@ def parse_epoch(time_):
     :return: iso 8601 formatted datetime str that cbpro API is expecting.
     """
     return datetime.datetime.fromtimestamp(time_, tz=datetime.timezone.utc)
+
+
+def is_weekend(time_):
+    """
+    Weekend detector.
+    Args:
+        time_: Epoch seconds
+    Returns:
+        (boolean) True if corresponding day is a weekend.
+    """
+    return parse_epoch(time_).weekday() > 4

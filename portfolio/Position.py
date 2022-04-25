@@ -24,7 +24,12 @@ class Position:
         self.action = action
         self.quantity = quantity
         self.ticker = ticker
-        self.date = date
+        # You cannot open a position on a weekend.
+        if not utils.is_weekend(date):
+            self.date = date
+        else:
+            raise Exception(f'{date} is a weekend, I will not be able to retrieve asset value.')
+
         if commision is None:
             self.commission = 0
         else:
