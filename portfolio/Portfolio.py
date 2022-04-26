@@ -24,10 +24,11 @@ class Portfolio:
 
     @property
     def summary(self):
-        out = {'transactions': self.transactions_per_ticker,
+        out = {'portfolio value ($)': self.total_value_global,
+               'portfolio returns (%)': self.current_portfolio_returns,
+               'transactions': self.transactions_per_ticker,
                'current value': self.current_value_per_ticker,
                'percent change': self.percent_change_per_ticker,
-               'portfolio value': self.total_value_global,
                'current number of shares': self.open_shares_per_ticker,
                'current sold shares': self.closed_shares_per_ticker,
                'total bought shares': self.total_shares_per_ticker,
@@ -39,12 +40,16 @@ class Portfolio:
 
     # properties are organized to be specific either for tickers or for the portfolio (ie. all tickers).
     @property
-    def returns_global(self):
+    def portfolio_returns(self):
         a = pd.concat([t.tc_returns for t in self.tickers], axis=1)  # returns
         w = pd.concat([t.tc_invested for t in self.tickers], axis=1)  # weights
         s = (a * w).sum(axis=1, skipna=False) / w.sum(axis=1, skipna=False)  # weighted average.
         s.name = 'returns'
         return s
+
+    @property
+    def current_portfolio_returns(self):
+        return self.portfolio_returns.iloc[-1].astype(float)
 
     @property
     def percent_change_per_ticker(self):
@@ -69,7 +74,7 @@ class Portfolio:
 
     @property
     def total_value_global(self):
-        return np.sum([t.tc_invested.loc[~t.tc_returns.isna()].iloc[-1] for t in self.tickers])
+        return np.sum([t.current_value for t in self.tickers])
 
     @property
     def profit_loss_per_ticker(self):

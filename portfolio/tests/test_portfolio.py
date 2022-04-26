@@ -1,6 +1,7 @@
 from portfolio import utils
 from dateutil.parser import parse
 from portfolio.Portfolio import Portfolio
+from portfolio.Parser import PortfolioParser
 from portfolio.Position import Position
 from portfolio.Ticker import Ticker
 from portfolio import Database
@@ -43,7 +44,7 @@ def test_balanced():
     r2 = 100 * (value * quantity2 - cost2 * quantity2) / (cost2 * quantity2)
     r = (r1 * cost1 * quantity1 + r2 * cost2 * quantity2) / (cost1 * quantity1 + cost2 * quantity2)
 
-    assert p.returns_global.values == r
+    assert p.portfolio_returns.values == r
 
 
 def test_unbalanced():
@@ -61,7 +62,7 @@ def test_unbalanced():
     r2 = 100 * (value - cost2) / cost2
     r = (r1 * cost1 * quantity1 + r2 * cost2 * quantity2) / (cost1 * quantity1 + cost2 * quantity2)
 
-    assert p.returns_global.values == r
+    assert p.portfolio_returns.values == r
 
 
 def test_shares_quantities():
