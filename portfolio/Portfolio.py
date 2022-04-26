@@ -42,7 +42,9 @@ class Portfolio:
 
     @property
     def benchmark_returns(self):
-        return self.benchmark_ticker.tc_returns
+        s = self.benchmark_ticker.tc_returns
+        s.name = 'benchmark returns'
+        return s
 
     @property
     def current_benchmark_returns(self):
@@ -70,8 +72,8 @@ class Portfolio:
     def portfolio_returns(self):
         a = pd.concat([t.tc_returns for t in self.tickers], axis=1)  # returns
         w = pd.concat([t.tc_invested for t in self.tickers], axis=1)  # weights
-        s = (a * w).sum(axis=1, skipna=False) / w.sum(axis=1, skipna=False)  # weighted average.
-        s.name = 'returns'
+        s = pd.Series(np.average(a, axis=1, weights=w), index=a.index)  # weighted average.
+        s.name = 'portfolio returns'
         return s
 
     @property
