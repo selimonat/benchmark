@@ -80,3 +80,10 @@ def test_shares_quantities():
     assert np.sum(list(p.total_shares_per_ticker.values())) == \
            (np.sum(list(p.open_shares_per_ticker.values())) +
             np.sum(list(p.closed_shares_per_ticker.values())))
+
+
+def test_benchmark_returns_must_be_same_when_tested_against_():
+    filename = '../examples/portfolio_05.csv'
+    pp = PortfolioParser(filename)
+    p = Portfolio(pp.tickers, benchmark_symbol='FB')
+    assert p.current_portfolio_returns == p.current_benchmark_returns

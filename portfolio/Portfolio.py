@@ -1,9 +1,11 @@
 from portfolio.Database import DB
 from portfolio.Ticker import Ticker
+from portfolio.Position import Position
 from typing import List
 import pandas as pd
 import numpy as np
 from collections import defaultdict
+import copy
 
 db = DB()
 
@@ -14,18 +16,43 @@ class Portfolio:
     The class instance generates first a transaction table (indexed on transaction id) from the parsed export file.
     """
 
-    def __init__(self, tickers: List[Ticker]):
+    def __init__(self, tickers: List[Ticker], benchmark_symbol='GOOG'):
         """
 
         Args:
-            tickers: (Ticker) da`taframe resulting from parsing the export file.
+            tickers: (Ticker) dataframe resulting from parsing the export file.
         """
+        self.benchmark_symbol = benchmark_symbol
         self.tickers = tickers
+        # copy positions and replace all tickers with the benchmark ticker.
+        dummy = copy.deepcopy(tickers)
+        self.benchmark_positions = list()
+        for t in dummy:
+            for p in t.positions:
+                # cost will be autofilled.
+                self.benchmark_positions.append(
+                    Position(ticker=self.benchmark_symbol,
+                             action=p.action,
+                             quantity=p.quantity,
+                             date=p.date,
+                             commision=p.commission)
+                )
+        # create now a ne ticker object from the modified positions
+        self.benchmark_ticker = Ticker(self.benchmark_positions)
+
+    @property
+    def benchmark_returns(self):
+        return self.benchmark_ticker.tc_returns
+
+    @property
+    def current_benchmark_returns(self):
+        return self.benchmark_returns.iloc[-1].astype(float)
 
     @property
     def summary(self):
         out = {'portfolio value ($)': self.total_value_global,
                'portfolio returns (%)': self.current_portfolio_returns,
+               'benchmark portfolio returns (%)': self.current_benchmark_returns,
                'transactions': self.transactions_per_ticker,
                'current value': self.current_value_per_ticker,
                'percent change': self.percent_change_per_ticker,
@@ -86,6 +113,7 @@ class Portfolio:
 
     @property
     def transactions_per_ticker(self):
+        # Returns list of positions for each ticker organized as a dict.
         out = defaultdict(list)
         for t in self.tickers:
             for p in t.positions:
