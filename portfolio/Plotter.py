@@ -1,30 +1,30 @@
 import pandas as pd
 from uniplot import plot
+from typing import Union
 
-# TODO: make it possible to plot to string and use it as a debugger.
 
-
-def console_plot(s: pd.Series, remove_nans=False):
+def console_plot(s: Union[pd.Series, pd.DataFrame], remove_nans=False):
     """
     Simple console plotter
     Args:
-        s: Pandas series with a time index
-        remove_nans: (bool) Discards NaNs befores plotting (default). If False, zeroes all nans.
+        s: Pandas Series or DataFrame  with a time index.
+        remove_nans: (bool) Discards NaNs before plotting (default). If False, zeroes all nans.
 
     Returns:
         None. Prints a plot to the console.
     """
-
-    valid_index = ~s.T.isna()
+    if isinstance(s, pd.Series):
+        s = s.to_frame()
+    valid_index = ~s.isna().any(axis=1)
     if remove_nans:
-        x = s.index.values[valid_index] / (60*60*24*365) + 1970
-        y = s.T.values[valid_index]
+        x = s.index[valid_index].values / (60 * 60 * 24 * 365) + 1970
+        y = s[valid_index].T.values
     else:
-        s.T.values[~valid_index] = 0
-        x = s.index.values / (60*60*24*365) + 1970
+        s.loc[~valid_index] = 0
+        x = s.index.values / (60 * 60 * 24 * 365) + 1970
         y = s.T.values
 
-    plot(xs=x,
+    plot(xs=[x for _ in range(len(y))],  # repeat the x as many time as to match len(y)
          ys=y,
          lines=True,
          x_unit='date',
