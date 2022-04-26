@@ -1,14 +1,16 @@
 import pandas as pd
 from uniplot import plot
 from typing import Union
+import numpy as np
 
 
-def console_plot(s: Union[pd.Series, pd.DataFrame], remove_nans=False):
+def console_plot(s: Union[pd.Series, pd.DataFrame], remove_nans=False, title=None):
     """
     Simple console plotter
     Args:
         s: Pandas Series or DataFrame  with a time index.
         remove_nans: (bool) Discards NaNs before plotting (default). If False, zeroes all nans.
+        title: title of the plot.
 
     Returns:
         None. Prints a plot to the console.
@@ -27,5 +29,8 @@ def console_plot(s: Union[pd.Series, pd.DataFrame], remove_nans=False):
     plot(xs=[x for _ in range(len(y))],  # repeat the x as many time as to match len(y)
          ys=y,
          lines=True,
-         x_unit='date',
-         width=200)
+         x_unit='year',
+         width=200,
+         legend_labels=s.columns,
+         x_gridlines=np.unique(np.round(x)),
+         title=title)
