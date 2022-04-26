@@ -15,6 +15,7 @@ random.seed("die kartoffeln")
 #  ticker. If yes, things should normally proceed and otherwise either fallback must be used or the exception in
 #  db.read() must be handled.
 
+# TODO: make a YF as an optional connector.
 
 class DB:
     """
