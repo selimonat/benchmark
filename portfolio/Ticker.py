@@ -150,36 +150,50 @@ class Ticker:
     @property
     def tc_invested(self):
         # total money that has been invested.
-        return self.mat_investment.sum(axis=1)
+        s = self.mat_investment.sum(axis=1)
+        s.name = 'tc_invested'
+        return s
 
     @property
     def tc_cost(self):
         # synonym of invested
-        return self.tc_invested
+        s = self.tc_invested
+        s.name = 'tc_cost'
+        return s
 
     @property
     def tc_profit_loss(self):
-        return self.mat_profit_loss.sum(axis=1, skipna=True, min_count=1)
+        s = self.mat_profit_loss.sum(axis=1, skipna=True, min_count=1)
+        s.name = 'tc_profit_loss'
+        return s
 
     @property
     def tc_value(self):
         # portfolio value
-        return self.mat_value.sum(axis=1, skipna=True, min_count=1)
+        s = self.mat_value.sum(axis=1, skipna=True, min_count=1)
+        s.name = 'tc_value'
+        return s
 
     # ######################################################
     # Derivative Parameters
 
     @property
     def tc_unrealized_gain(self):
-        return (self.mat_value - self.mat_investment).sum(axis=1, skipna=True, min_count=1)
+        s = (self.mat_value - self.mat_investment).sum(axis=1, skipna=True, min_count=1)
+        s.name = 'tc_unrealized_gain'
+        return s
 
     @property
     def tc_returns(self):
-        return 100 * self.tc_unrealized_gain / self.tc_cost
+        s = 100 * self.tc_unrealized_gain / self.tc_cost
+        s.name = 'tc_returns'
+        return s
 
     @property
     def tc_average_cost_per_share(self):
-        return self.tc_invested / self.tc_open_shares
+        s = self.tc_invested / self.tc_open_shares
+        s.name = 'tc_average_cost_per_share'
+        return s
 
     # ######################################################
     # Share counts:
@@ -187,17 +201,23 @@ class Ticker:
     @property
     def tc_total_shares(self):
         # total number of shares that were ever transacted (buys + sells together)
-        return self.tc_counter_buy
+        s = self.tc_counter_buy
+        s.name = 'tc_total_shares'
+        return s
 
     @property
     def tc_open_shares(self):
         # number of shares that are currently open
-        return self.tc_counter_buy-self.tc_counter_sell
+        s = self.tc_counter_buy - self.tc_counter_sell
+        s.name = 'tc_open_shares'
+        return s
 
     @property
     def tc_closed_shares(self):
         # number of shares that were sold
-        return self.tc_counter_sell
+        s = self.tc_counter_sell
+        s.name = 'tc_closed_shares'
+        return s
 
     # ######################################################
     # Same as above but extract the CURRENT_VALUE ie take only the last value, this could be automatized at class level.
