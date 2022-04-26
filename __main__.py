@@ -3,6 +3,7 @@ from portfolio.Parser import PortfolioParser
 from portfolio.Plotter import console_plot
 from portfolio.Portfolio import Portfolio
 from portfolio.Database import DB
+import pandas as pd
 import json
 
 from downloader.__main__ import updater
@@ -35,17 +36,18 @@ def parse_export(filename: str) -> str:
 
 
 @app.command()
-def returns_time_course(filename: str):
+def plot_portfolio_return(filename: str, benchmark_ticker: str = 'GOOG'):
     """
-    Returns time-course of asset prices in the portfolio
+    Plots time-course of asset prices in the portfolio
     Args:
+        benchmark_ticker: The symbol to be used as benchmark.
         filename: Path to portfolio export file.
     Returns:
         df: with as many columns as tickers in portfolio indexed on time.
     """
     pp = PortfolioParser(filename)
-    p = Portfolio(pp.tickers)
-    console_plot(p.portfolio_returns)
+    p = Portfolio(pp.tickers, benchmark_symbol=benchmark_ticker)
+    console_plot(pd.concat([p.portfolio_returns, p.benchmark_returns], axis=1))
 
 
 @app.command()
