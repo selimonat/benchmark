@@ -1,7 +1,5 @@
 name: benchmark ci
-on:
-  push:
-    branches: [ $default-branch ]
+on: [push]
 jobs:
   build:
     name: 'tests'
