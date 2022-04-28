@@ -11,8 +11,8 @@ jobs:
         with:
           python-version: 3.7.12
 
-      -run: make setup.env
-      -run: pwd
-      -run: ls -lah
-      -run: . ./.venv/bin/activate
-      -run: which pip
+      - run: make setup.env
+      - run: pwd
+      - run: ls -lah
+      - run: . ./.venv/bin/activate
+      - run: which pip
