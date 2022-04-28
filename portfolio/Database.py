@@ -67,7 +67,12 @@ class DB:
               index stored but to contain nan values.
         """
         # if ES cluster reachable run this:
-        df = self.query_es(index_name, ticker, date)
+        if self.client.ping():
+            df = self.query_es(index_name, ticker, date)
+        else:
+            df = pd.DataFrame(data=1, columns=['ticker', 'Close'], index=pd.Index(date, name='date'))
+            df.ticker = df.ticker.astype("category")
+
         # if series is wanted than process it and convert it
         if output_format is "series":
             df = self.convert(df)
@@ -137,22 +142,6 @@ class DB:
             df_.Close = df_.Close.astype(float)
             df_.ticker = df_.ticker.astype("category")
             return df_
-
-    def random_read(self, ticker: str, date: list) -> list:
-        """
-        TODO: Use this as a fallback maybe in the future, or delete it.
-        Generates random price values for a given ticker.
-        Args:
-            ticker: (str)
-            date: (list) timestamps, epoch seconds
-
-        Returns:
-            list: values.
-        """
-        date = utils.ensure_iterable(date)
-        self.logger.debug(f'Reading {ticker} value at {len(date)} different values (min: {min(date)}, max: {max(date)})'
-                          f' from random number generator.')
-        return [random.random() for _ in date]
 
     def query_es(self, index_name, ticker, date):
         # empty df with standard columns
