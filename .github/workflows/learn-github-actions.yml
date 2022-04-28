@@ -19,6 +19,11 @@ jobs:
     needs: build
     steps:
       - shell: bash
-        run: PYTHONPATH=./benchmark/ python -m pytest test_parser.py
-        working-directory: ./portfolio/tests
+        run: |
+            echo "bla bla"
+             ls -lat
+             pwd
+
+#        run: PYTHONPATH=./benchmark/ python -m pytest test_parser.py
+#        working-directory: ./portfolio/tests
 
