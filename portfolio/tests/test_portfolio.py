@@ -83,7 +83,7 @@ def test_shares_quantities():
 
 
 def test_benchmark_returns_must_be_same_when_tested_against_():
-    filename = '../examples/portfolio_05.csv'
+    filename = './portfolio/examples/portfolio_05.csv'
     pp = PortfolioParser(filename)
     p = Portfolio(pp.tickers, benchmark_symbol='FB')
     assert p.current_portfolio_returns == p.current_benchmark_returns

@@ -16,7 +16,7 @@ a_friday = a_thursday + 24 * 60 * 60
 
 def test_non_homogenous_ticker_list():
     # Ticker should throw an exception when passed a list with more than one ticker name.
-    filename = '../examples/portfolio_01.csv'
+    filename = './portfolio/examples/portfolio_01.csv'
     pp = PortfolioParser(filename)
     # take more or less randomly a ticker
     with pytest.raises(Exception) as exception:
@@ -33,7 +33,7 @@ def test_no_input():
 
 def test_share_numbers_for_a_ticker():
     # compare number of shares from the parsed table with those from the ticker data frames.
-    for filename in ['../examples/portfolio_03.csv', '../examples/portfolio_05.csv']:
+    for filename in ['./portfolio/examples/portfolio_03.csv', './portfolio/examples/portfolio_05.csv']:
         pp = PortfolioParser(filename)
         # take more or less randomly a ticker
         ticker = pp.ticker_names[-1]
