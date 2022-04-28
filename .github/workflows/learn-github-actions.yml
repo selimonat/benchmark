@@ -10,6 +10,6 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v3.1.2
         with:
-          python-version: 3.7.13 # optional, default is 3.x
+          python-version: 3.7.12
       - shell: bash
         run: make setup.env
