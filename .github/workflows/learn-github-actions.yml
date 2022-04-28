@@ -12,5 +12,6 @@ jobs:
           python-version: 3.7.12
           cache: poetry
 
-      - run: poetry install --no-interaction --no-ansi
-      - run: poetry run python -m pytest
+      - run: make setup.env
+      - run: which python
+      - run: which poetry

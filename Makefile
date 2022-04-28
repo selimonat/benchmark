@@ -11,3 +11,4 @@ setup.poetry:
 	poetry config virtualenvs.create true
 	poetry config virtualenvs.in-project true
 	poetry install --no-interaction --no-ansi
+	. ./.venv/bin/activate
