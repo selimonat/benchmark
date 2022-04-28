@@ -1,3 +1,4 @@
+[![Build Status](https://github.com/selimonat/benchmark/workflows/Unit%20Tests/badge.svg)](https://github.com/selimonat/benchmark/actions?query=workflow%3A"Unit+Tests")
 # benchmark
 
 Benchmark your stock portfolio against common metrics such as S&P500.
