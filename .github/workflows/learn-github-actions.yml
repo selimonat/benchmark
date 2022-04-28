@@ -14,5 +14,4 @@ jobs:
           python-version: 3.7.12
           cache: poetry
       - run: make setup.poetry
-      - run: which python
-      - run: which poetry
+      - run: poetry run python -m pytest
