@@ -16,3 +16,5 @@ jobs:
       - run: ls -lah
       - run: . ./.venv/bin/activate
       - run: which pip
+      - run: cd portfolio/tests
+      - run: PYTHONPATH=/home/runner/work/benchmark/benchmark python -m pytest test_parser.py
