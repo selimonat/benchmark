@@ -11,19 +11,10 @@ jobs:
         with:
           python-version: 3.7.12
       - shell: bash
-        run: make setup.env
-        # activate
-  test:
-    runs-on: ubuntu-latest
-    name: 'test'
-    needs: build
-    steps:
-      - shell: bash
         run: |
-            echo "bla bla"
-             ls -lat
-             pwd
-
-#        run: PYTHONPATH=./benchmark/ python -m pytest test_parser.py
-#        working-directory: ./portfolio/tests
-
+        make setup.env
+        pwd
+        ls -lah
+        . ./.venv/bin/activate
+        which pip
+        PYTHONPATH=./benchmark/ python -m pytest test_parser.py
