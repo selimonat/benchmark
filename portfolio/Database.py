@@ -66,15 +66,16 @@ class DB:
               structure is empty, does not contain any trace of the requested date. It would be better to have the
               index stored but to contain nan values.
         """
-        q = {"query": {"match": {"ticker": ticker}}}
+        # if ES cluster is not reachable fallback to random generator:
 
+        # if ES cluster reachable run this:
+        # empty df with standard columns
+        df = pd.DataFrame(columns=['ticker', 'Close'], index=pd.Index([], name='date'))
         # return all data
         res = helpers.scan(self.client,
                            index=index_name,
-                           query=q,
+                           query={"query": {"match": {"ticker": ticker}}},
                            )
-        # empty df with standard columns
-        df = pd.DataFrame(columns=['ticker', 'Close'], index=pd.Index([], name='date'))
         # parse the raw results to pandas DF
         try:
             df = pd.DataFrame([r['_source'] for r in res])
@@ -93,6 +94,7 @@ class DB:
                 # as a side-effect ticker column will also contain nans, that's why I overwrite it that column
                 df = pd.DataFrame(index=pd.Index(date, name='date')).join(df, how='left')
                 df['ticker'] = ticker
+                df.ticker = df.ticker.astype("category")  # need to do this again
 
             # if series is wanted than process it and convert it
             if output_format is "series":
@@ -102,6 +104,10 @@ class DB:
             self.logger.error(err)
         except AttributeError as err:
             self.logger.error(err)
+
+        # if series is wanted than process it and convert it
+        if output_format is "series":
+            df = self.convert(df)
 
         if fill_na:
             df.fillna(method='ffill', inplace=True)
