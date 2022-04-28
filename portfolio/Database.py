@@ -66,45 +66,8 @@ class DB:
               structure is empty, does not contain any trace of the requested date. It would be better to have the
               index stored but to contain nan values.
         """
-        # if ES cluster is not reachable fallback to random generator:
-
         # if ES cluster reachable run this:
-        # empty df with standard columns
-        df = pd.DataFrame(columns=['ticker', 'Close'], index=pd.Index([], name='date'))
-        # return all data
-        res = helpers.scan(self.client,
-                           index=index_name,
-                           query={"query": {"match": {"ticker": ticker}}},
-                           )
-        # parse the raw results to pandas DF
-        try:
-            df = pd.DataFrame([r['_source'] for r in res])
-            # dtype conversions:
-            df.date = df.date.astype(int)
-            df.Close = df.Close.astype(float)
-            df.ticker = df.ticker.astype("category")
-
-            df.set_index('date', inplace=True)
-            df.index.name = 'date'
-            df.columns.name = ticker
-            # filter the requested time points
-            if date is not None:
-                # left join with a df that contains all the requested time points.
-                # this will automatically create rows of NaN when the data was not present in the DB.
-                # as a side-effect ticker column will also contain nans, that's why I overwrite it that column
-                df = pd.DataFrame(index=pd.Index(date, name='date')).join(df, how='left')
-                df['ticker'] = ticker
-                df.ticker = df.ticker.astype("category")  # need to do this again
-
-            # if series is wanted than process it and convert it
-            if output_format is "series":
-                df = self.convert(df)
-
-        except NotFoundError as err:
-            self.logger.error(err)
-        except AttributeError as err:
-            self.logger.error(err)
-
+        df = self.query_es(index_name, ticker, date)
         # if series is wanted than process it and convert it
         if output_format is "series":
             df = self.convert(df)
@@ -190,3 +153,37 @@ class DB:
         self.logger.debug(f'Reading {ticker} value at {len(date)} different values (min: {min(date)}, max: {max(date)})'
                           f' from random number generator.')
         return [random.random() for _ in date]
+
+    def query_es(self, index_name, ticker, date):
+        # empty df with standard columns
+        df = pd.DataFrame(columns=['ticker', 'Close'], index=pd.Index([], name='date'))
+        # return all data
+        res = helpers.scan(self.client,
+                           index=index_name,
+                           query={"query": {"match": {"ticker": ticker}}},
+                           )
+        # parse the raw results to pandas DF
+        try:
+            df = pd.DataFrame([r['_source'] for r in res])
+            # dtype conversions:
+            df.date = df.date.astype(int)
+            df.Close = df.Close.astype(float)
+            df.ticker = df.ticker.astype("category")
+
+            df.set_index('date', inplace=True)
+            df.index.name = 'date'
+            df.columns.name = ticker
+            # filter the requested time points
+            if date is not None:
+                # left join with a df that contains all the requested time points.
+                # this will automatically create rows of NaN when the data was not present in the DB.
+                # as a side-effect ticker column will also contain nans, that's why I overwrite it that column
+                df = pd.DataFrame(index=pd.Index(date, name='date')).join(df, how='left')
+                df['ticker'] = ticker
+                df.ticker = df.ticker.astype("category")  # need to do this again
+
+        except NotFoundError as err:
+            self.logger.error(err)
+        except AttributeError as err:
+            self.logger.error(err)
+        return df
