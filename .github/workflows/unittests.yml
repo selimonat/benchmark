@@ -13,5 +13,6 @@ jobs:
         with:
           python-version: 3.7.12
           cache: poetry
+      - run: mkdir -p /home/runner/.cache/pypoetry/virtualenvs
       - run: make setup.poetry
       - run: poetry run python -m pytest  ./portfolio/tests/unit
