@@ -6,12 +6,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
       - name: Setup Python
         uses: actions/setup-python@v3.1.2
         with:
           python-version: 3.7.12
           cache: poetry
-
-      - run: make setup.env
+      - run: make setup.poetry
       - run: which python
       - run: which poetry
