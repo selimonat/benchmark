@@ -10,11 +10,9 @@ jobs:
         uses: actions/setup-python@v3.1.2
         with:
           python-version: 3.7.12
-      - shell: bash
-        run: |
-        make setup.env
-        pwd
-        ls -lah
-        . ./.venv/bin/activate
-        which pip
-        PYTHONPATH=./benchmark/ python -m pytest test_parser.py
+
+      -run: make setup.env
+      -run: pwd
+      -run: ls -lah
+      -run: . ./.venv/bin/activate
+      -run: which pip
