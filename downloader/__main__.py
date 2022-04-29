@@ -1,11 +1,9 @@
 from typing import AnyStr, Union
-import yfinance as yf
 import pandas as pd
 import time
 from downloader import utils
 from portfolio.Database import DB
 import datetime
-import sys
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', 500)
@@ -17,11 +15,11 @@ logger = utils.get_logger("downloader")
 
 def updater(tickers: Union[AnyStr, None] = None) -> None:
     """
-    Saves historical values fetched from Yahoo Finance to a local Elastic cluster.
-
+    Saves historical values fetched from Yahoo Finance (YF) to local Elasticsearch cluster.
+    Multiple runs updates the missing time points in the ES.
     Args:
         tickers (str): If present (Example: 'FB') then fetches data for that specific ticker. Otherwise starts a
-        whole update cycle, running across all tickers.
+        whole update cycle, running across all tickers returned by `utils.get_all_tickers()`.
     """
     db = DB()
 
@@ -43,7 +41,8 @@ def updater(tickers: Union[AnyStr, None] = None) -> None:
         logger.info(f"==================Working on ticker {ticker}==================")
         # get ticker from ES.
         df_db = db.read(ticker, output_format='series')
-        # find the maximum value and use the next day as the start argument
+        # find the latest available date and use its following day as the start argument for the YF call.
+        start = datetime.datetime.strptime('1900-01-01', '%Y-%m-%d')
         if not df_db.empty:
             start_minus_one = df_db.index.max()
             logger.info(f"Received a DF of size {df_db.shape[0]} from the DB.")
@@ -51,27 +50,12 @@ def updater(tickers: Union[AnyStr, None] = None) -> None:
             start = start_minus_one + 24 * 60 * 60
             start = datetime.datetime.fromtimestamp(start)
             logger.info(f"The first missing date is {start}.")
-        else:
-            start = datetime.datetime.strptime('1900-01-01', '%Y-%m-%d')
+        # get a standardized DF from yf
+        df = utils.yf_call(ticker, start)
 
-        t = yf.Ticker(ticker)
-
-        df = t.history(start=start.strftime('%Y-%m-%d'), interval='1d')
-        # make it fucking sure that start is start and that no previous days are included.
-        df = df.loc[df.index > start]
-        # take only close. alternative could be open, high, low
-        df = df["Close"]
         if not df.empty:
             logger.info(f"Got a DF of size {df.shape[0]}, the first date is {df.index.min()} and the last one is"
                         f" {df.index.max()}")
-            df.index.name = 'date'
-            df = df.reset_index()
-            # convert unserializable datetime columns to integer
-            df['date'] = df['date'].astype('int64') // 1e9
-            # add the ticker as a column
-            df['ticker'] = ticker
-            df = df.set_index('date')
-
             if db.write(ind, df):
                 logger.info(f'Success... Wrote {df.shape[0]} new rows for {ticker}.')
                 logger.info(f"Will wait a bit before the next call")
@@ -84,7 +68,5 @@ def updater(tickers: Union[AnyStr, None] = None) -> None:
 
 
 if __name__ == '__main__':
-    ticker_input = None
-    if len(sys.argv) == 2:
-        ticker_input = sys.argv[1]
-    updater(ticker_input)
+    _ = 'BAS.F'
+    updater(_)

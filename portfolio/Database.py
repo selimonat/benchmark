@@ -7,6 +7,7 @@ import random
 import pandas as pd
 import uuid
 import json
+from downloader import utils
 
 random.seed("die kartoffeln")
 
@@ -19,8 +20,7 @@ random.seed("die kartoffeln")
 
 class DB:
     """
-    Currently mock situation. Currently client is not implemented only random values for returned for all calls.
-    Request values for tickers at specific dates.
+    Read-write interface to ES cluster for tickers.
     """
 
     def __init__(self, hostname="localhost:9200"):
@@ -50,28 +50,45 @@ class DB:
              output_format: Optional[AnyStr] = "raw",
              fill_na: bool = True) -> Union[pd.Series, pd.DataFrame]:
         """
-        Returns data for a given ticker. If no date is given all data is returned.
+        Returns data for a given ticker either from the ES, fallbacks to direct call to YF.
+        If a ticker is not stored in the DB, it will make a direct YF call and write the data to DB.
+
         Args:
-            output_format: "raw" returns a dataframe, "series" returns a series, defaults to raw
-            index_name: name of the index_name, defaults to time-series
-            ticker: (str) A Nasdaq ticker
-            date: (list) timestamps, epoch seconds.
-            fill_na: (boolean) If True will fill nan using pandas. Defaults to True.
+            output_format: "raw" returns a dataframe, "series" returns a series, defaults to raw.
+            index_name: name of the index_name, defaults to time-series.
+            ticker: (str) A ticker symbol.
+            date: (list) timestamps, epoch seconds. If not given complete historical data is returned.
+            fill_na: (boolean) If True will fill-nan using pandas. Defaults to True.
 
         Returns:
-            series: A pandas Series named "price" showing time-course of a ticker, indexed on time.
-        TODO: one can directly ask for ES the requested dates rather than filtering them after the call.
-        TODO: it is generally a better approach to have the output data set to be indexed or at least to contain the
-              required date range. Currently when the requested date is not stored in the db, the returned data
-              structure is empty, does not contain any trace of the requested date. It would be better to have the
-              index stored but to contain nan values.
+            A series or df indexed on date with columns containing name of the ticker and its value.
         """
-        # if ES cluster reachable run this:
-        if self.client.ping():
-            df = self.query_es(index_name, ticker, date)
-        else:
-            df = pd.DataFrame(data=1, columns=['ticker', 'Close'], index=pd.Index(date, name='date'))
-            df.ticker = df.ticker.astype("category")
+
+        # the default DF to return is an empty df.
+        df = pd.DataFrame(data=1, columns=['ticker', 'Close'], index=pd.Index(date if date is not None else [],
+                                                                              name='date'))
+        df.ticker = df.ticker.astype("category")
+        # this is what happens below:
+        # - if the ES client is online, make a query.
+        #   - if the ticker is in, return it.
+        #   - if the ticker not present in db, then make a direct YF call and
+        #       - write the results to ES.
+        # - convert the df to series if requested and fillnan.
+
+        if self.client.ping():  # if ES cluster reachable, get data from it:
+            self.logger.info(f'Reading ticker {ticker} from index {index_name}')
+            df = self.query_es(index_name, ticker, date)  # it could be that the ticker is not present.
+            if df.empty:  # then make a direct YF call.
+                self.logger.info(f"DB does not have this data stored, will make a direct YF call.")
+                # call YF directly via downloader.
+                df = utils.yf_call(ticker)
+                self.logger.info(f"YF call  returned a df of size {df.shape}, we will cache this for future uses.")
+                # cache it
+                self.write(index_name, df)
+                # here we could recall the query_es to return a standard DF, but ES is not fast enough to return
+                # freshly written data, there are some asynchronous processes that leads to an empty return following
+                # a read which comes right after a write.
+                # df = self.query_es(index_name, ticker, date)
 
         # if series is wanted than process it and convert it
         if output_format is "series":
@@ -154,6 +171,7 @@ class DB:
         # parse the raw results to pandas DF
         try:
             df = pd.DataFrame([r['_source'] for r in res])
+            # Adapt ES output to benchmark standards.
             # dtype conversions:
             df.date = df.date.astype(int)
             df.Close = df.Close.astype(float)
@@ -167,6 +185,7 @@ class DB:
                 # left join with a df that contains all the requested time points.
                 # this will automatically create rows of NaN when the data was not present in the DB.
                 # as a side-effect ticker column will also contain nans, that's why I overwrite it that column
+                # TODO: one can directly ask for ES the requested dates rather than filtering them after the call.
                 df = pd.DataFrame(index=pd.Index(date, name='date')).join(df, how='left')
                 df['ticker'] = ticker
                 df.ticker = df.ticker.astype("category")  # need to do this again

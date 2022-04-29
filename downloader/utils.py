@@ -1,7 +1,9 @@
 import logging
 import os
-from typing import Union
+from typing import Union, AnyStr
+import datetime
 from urllib.error import URLError
+import yfinance as yf
 
 import pandas as pd
 
@@ -66,3 +68,38 @@ def get_logger(name):
     f_handler.setFormatter(formatter)
     logger_.addHandler(f_handler)
     return logger_
+
+
+def yf_call(ticker: AnyStr,
+            start: datetime = datetime.datetime.strptime('1900-01-01', '%Y-%m-%d')) -> pd.DataFrame:
+    """
+    Makes a YF call and returns tickers data.
+    Args:
+        ticker: ticker symbol
+        start: (datetime) when not given complete dataset is returned.
+    Returns:
+        dataframe:  a standard DF with Close, ticker columns indexed on date.
+    """
+    logger = get_logger(__name__)
+
+    logger.info(f"Making a direct YF call for ticker: {ticker} and start_date: {start}")
+    t = yf.Ticker(ticker)
+    df = t.history(start=start.strftime('%Y-%m-%d'), interval='1d')
+    # make it fucking sure that start is start and that no previous days are included.
+
+    df = df.loc[df.index > start]
+
+    # Adapt YF output to benchmark standards.
+    df = df["Close"]     # take only close. alternative could be open, high, low
+    if not df.empty:
+        df.index.name = 'date'
+        df = df.reset_index()
+        # add the ticker as a column
+        df['ticker'] = ticker
+        # datatypes, convert unserializable datetime columns to integer
+        df['date'] = df['date'].astype('int64') // 1e9
+        df.ticker = df.ticker.astype("category")
+        df.Close = df.Close.astype(float)
+        df = df.set_index('date')
+
+    return df

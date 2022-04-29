@@ -64,6 +64,7 @@ class Portfolio:
                'average cost': self.averaged_cost_per_ticker,
                'profit/lost': self.profit_loss_per_ticker,
                'unrealized gain': self.unrealized_gain_per_ticker,
+               'unfound tickers': []
                }
         return out
 
