@@ -15,7 +15,7 @@ pd.set_option('display.width', 1000)
 logger = utils.get_logger("downloader")
 
 
-def updater(tickers: Union[AnyStr, None] = None):
+def updater(tickers: Union[AnyStr, None] = None) -> None:
     """
     Saves historical values fetched from Yahoo Finance to a local Elastic cluster.
 
