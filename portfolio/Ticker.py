@@ -39,9 +39,6 @@ class Ticker:
         else:
             raise Exception("No positions are given...")
         self.tc_ticker_value = db.read(self.ticker, self.time_line, output_format='series')
-        #  TODO: if the returned mat_value is NaN because the db is not yet updated, then you will have columns for
-        #   shares (bought "today") filled with nans. We need a procedure for avoiding this. One simply needs to
-        #   remove full nan rows.
 
         if value is not None:
             value = utils.ensure_iterable(value)
