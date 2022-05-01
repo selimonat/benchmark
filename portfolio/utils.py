@@ -78,15 +78,15 @@ def is_weekend(time_):
 
 
 def last_monday():
-    """Returns last monday as epoch second"""
+    """Returns last weeks monday as epoch second"""
     today_ = today()
-    return today_ - datetime.timedelta(days=datetime.date.today().weekday()).days * 24*60*60
+    return today_ - (7 + datetime.timedelta(days=datetime.date.today().weekday()).days) * 24*60*60
 
 
 @lru_cache(maxsize=None)
 def is_valid_ticker(ticker: AnyStr) -> bool:
     """
-    Validates ticker against a direct YF call. If ticker has time-series data for last monday, it is considered a
+    Validates ticker against a direct YF call. If ticker has time-series data for last week's monday, it is considered a
     valid ticker.
     Args:
         ticker:
