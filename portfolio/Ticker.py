@@ -13,13 +13,14 @@ class Ticker:
     """
     An ensemble of positions under the same ticker label.
     Keeps track of 3 variables: investment, value and profit/loss, all aligned on the same time-axis.
-    mat_* are matrices organized as (time, n_shares)
-    tc_* are column vectors representing time-courses.
-    current_* are scalars or row vectors representing the most recent value.
     """
 
     def __init__(self, positions: Sequence[Position], value=None, clean_weekends=True, today=None):
         """
+        mat_* are matrices organized as (time, n_shares)
+        tc_* are column vectors representing time-courses.
+        current_* are scalars or row vectors representing the most recent value.
+
         Args:
             positions: List of Position classes.
             value: Use this for testing purposes to overwrite the mat_value ticker mat_value.
