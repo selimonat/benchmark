@@ -1,6 +1,7 @@
 import pytest
 from portfolio.Position import Position
 from portfolio.utils import last_monday
+import numpy as np
 
 
 def test_invalid_ticker():
@@ -18,3 +19,12 @@ def test_valid_ticker():
     start = last_monday()
     Position(action='buy', quantity=1, ticker=ticker, date=start)
     assert True
+
+
+def test_valid_quantity():
+    # test with an unlikely ticker name.
+    ticker = 'AMZN'
+    start = last_monday()
+    with pytest.raises(Exception) as exception:
+        Position(action='buy', quantity=np.nan, ticker=ticker, date=start)
+    assert f"{ticker} at {start} cannot have nan quantity." == str(exception.value)
