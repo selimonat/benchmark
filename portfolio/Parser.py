@@ -80,7 +80,7 @@ class PortfolioParser:
     @property
     def positions(self) -> List:
         """
-        Returns: Returns parsed .csv export file as a list of positions.
+        Returns: Returns parsed .csv export file as a list of validated Position objects.
         """
 
         def callback(col) -> Position:
