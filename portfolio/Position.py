@@ -7,37 +7,37 @@ db = Database.DB()
 
 class Position:
     """
-    Represents an open or closed position for a given ticker, stores information about whether a position is open or
-    closed, how many shares have been sold and the date of purchase or close. The price information is queried from
-    the database.
+    Represents a position for a given security. Stores information (1) whether a position is open or closed,
+    (2) the date of the transaction, (3) how many shares have been transacted, (4) the commission paid for this
+    transaction (experimental). The price information is automatically filled unless it is manually given.
+
+    Validates dates, ticker, action. Dates must be weekdays and ticker must be a valid ticker. A valid ticker is a
+    ticker
+    that is used by a given exchange market.
     """
 
     def __init__(self,
                  action: AnyStr,
-                 quantity: int,
+                 quantity: float,  # fractional shares
                  ticker: AnyStr,
                  date: int,
                  cost: Optional[float] = None,
-                 commision: Optional[float] = None):
+                 commision: Optional[float] = None):  # commission is currently in mock state.
 
         self.logger = utils.get_logger(__name__)
         self.action = action
         self.quantity = quantity
-        self.ticker = ticker
+        if utils.is_valid_ticker(ticker):
+            self.ticker = ticker
+        else:
+            raise Exception(f'{ticker} is not a valid ticker, I will not be able to retrieve asset value.')
         # You cannot open a position on a weekend.
         if not utils.is_weekend(date):
             self.date = date
         else:
             raise Exception(f'{date} is a weekend, I will not be able to retrieve asset value.')
-
-        if commision is None:
-            self.commission = 0
-        else:
-            self.commission = commision
-        if cost is None:
-            self.cost = self.value_at([self.date])
-        else:
-            self.cost = cost
+        self.commission = 0 if commision is None else commision
+        self.cost = self.value_at([self.date]) if cost is None else cost
 
     def __str__(self):
         return f"{self.action[:3]} {self.quantity:5} {self.ticker} for {self.cost:5.2f}$ ({self.commission:5.2f}$)" \
@@ -54,7 +54,7 @@ class Position:
         out = pd.DataFrame.from_dict([self.__dict__])
         # conversion of data types
         out.action = out.action.astype('category')
-        out.quantity = out.quantity.astype(int)
+        out.quantity = out.quantity.astype(float)
         out.ticker = out.ticker.astype('category')
         out.date = out.date.astype(int)
         out.cost = out.cost.astype(float)

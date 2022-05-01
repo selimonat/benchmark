@@ -3,6 +3,9 @@ from math import floor
 import logging
 import os
 import datetime
+import yfinance as yf
+from typing import AnyStr
+from functools import lru_cache
 
 
 def today():
@@ -72,3 +75,26 @@ def is_weekend(time_):
         (boolean) True if corresponding day is a weekend.
     """
     return parse_epoch(time_).weekday() > 4
+
+
+def last_monday():
+    """Returns last monday as epoch second"""
+    today_ = today()
+    return today_ - datetime.timedelta(days=datetime.date.today().weekday()).days * 24*60*60
+
+
+@lru_cache(maxsize=None)
+def is_valid_ticker(ticker: AnyStr) -> bool:
+    """
+    Validates ticker against a direct YF call. If ticker has time-series data for last monday, it is considered a
+    valid ticker.
+    Args:
+        ticker:
+    Returns:
+    """
+    start = parse_epoch(last_monday()).strftime('%Y-%m-%d')
+    df = yf.Ticker(ticker).history(start=start, interval='1d')
+    if not df.empty:
+        return True
+    else:
+        return False
