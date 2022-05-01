@@ -1,4 +1,5 @@
 import pandas as pd
+from numpy import isnan
 from typing import SupportsFloat, AnyStr, Optional
 from portfolio import Database
 from portfolio import utils
@@ -11,9 +12,8 @@ class Position:
     (2) the date of the transaction, (3) how many shares have been transacted, (4) the commission paid for this
     transaction (experimental). The price information is automatically filled unless it is manually given.
 
-    Validates dates, ticker, action. Dates must be weekdays and ticker must be a valid ticker. A valid ticker is a
-    ticker
-    that is used by a given exchange market.
+    Validates dates, ticker, action and quantity. Dates must be weekdays and ticker must be a valid ticker. A valid
+    ticker is a ticker that is used by a given exchange market.
     """
 
     def __init__(self,
@@ -22,11 +22,17 @@ class Position:
                  ticker: AnyStr,
                  date: int,
                  cost: Optional[float] = None,
-                 commision: Optional[float] = None):  # commission is currently in mock state.
+                 commission: Optional[float] = None):  # commission is currently in mock state.
 
         self.logger = utils.get_logger(__name__)
+        self.logger.info(f"Position object is being created with action: {action}, quantity: {quantity}, "
+                         f"ticker: {ticker}, date: {date}, cost: {cost}, commission: {commission} parameters")
         self.action = action
-        self.quantity = quantity
+        if not isnan(quantity):
+            self.quantity = quantity
+        else:
+            raise Exception(f"{ticker} at {date} cannot have nan quantity.")
+
         if utils.is_valid_ticker(ticker):
             self.ticker = ticker
         else:
@@ -36,7 +42,7 @@ class Position:
             self.date = date
         else:
             raise Exception(f'{date} is a weekend, I will not be able to retrieve asset value.')
-        self.commission = 0 if commision is None else commision
+        self.commission = 0 if commission is None else commission
         self.cost = self.value_at([self.date]) if cost is None else cost
 
     def __str__(self):
@@ -69,7 +75,9 @@ class Position:
         Returns:
             list: The value of the position. Returns NaN if no value.
         """
+        self.logger.info(f"Attempt to get the value of {self.ticker} at {self.date}.")
         out = db.read(ticker=self.ticker, date=date, output_format='series')
+        self.logger.debug(f"Received a df of shape {out.shape}.")
         if out.shape[0] == 1:
             return out.iloc[0]
         elif out.shape[0] == 0:
