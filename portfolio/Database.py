@@ -94,7 +94,7 @@ class DB:
         if output_format is "series":
             df = self.convert(df)
 
-        if fill_na:
+        if fill_na & (not df.empty):
             df.fillna(method='ffill', inplace=True)
         return df
 

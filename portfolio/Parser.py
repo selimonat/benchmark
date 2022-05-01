@@ -15,8 +15,8 @@ pd.set_option('display.width', 1000)
 # used to map all column names listed in values, to their keys {target column name: export file column name}.
 # the column names listed as values are encountered on the .csv file and then mapped to final column names (shown in
 # keys).
-mapping = {'action': ['action'],
-           'quantity': ['quantity', 'amount'],
+mapping = {'action': ['action', 'type'],
+           'quantity': ['quantity', 'amount', 'n'],
            'ticker': ['symbol', 'ticker'],
            'date_human': ['trade date', 'purchase date']
            }
@@ -84,7 +84,7 @@ class PortfolioParser:
         """
 
         def callback(col) -> Position:
-            return Position(col.action, int(col.quantity), col.ticker, int(col.date))
+            return Position(col.action, col.quantity, col.ticker, int(col.date))
 
         return self.df.T.apply(callback).to_list()
 
