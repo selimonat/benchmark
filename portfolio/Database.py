@@ -89,6 +89,9 @@ class DB:
                 # freshly written data, there are some asynchronous processes that leads to an empty return following
                 # a read which comes right after a write.
                 # df = self.query_es(index_name, ticker, date)
+                df = pd.DataFrame(index=pd.Index(date, name='date')).join(df, how='left')
+                df['ticker'] = ticker
+                df.ticker = df.ticker.astype("category")  # need to do this again
 
         # if series is wanted than process it and convert it
         if output_format is "series":
