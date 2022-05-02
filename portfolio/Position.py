@@ -46,10 +46,8 @@ class Position:
         self.cost = self.value_at([self.date]) if cost is None else cost
 
     def __str__(self):
-        return f"{self.action[:3]} {self.quantity:5} {self.ticker} for {self.cost:5.2f}$ ({self.commission:5.2f}$)" \
-               f" {self.date}s " \
-               f"(" \
-               f"{utils.parse_epoch(self.date)})"
+        return f"{self.action[:3]} {self.quantity:10.2f} shares of {self.ticker:10} for {self.cost:10.2f}$ " \
+               f"({self.commission:5.2f}$) {self.date}s ({utils.parse_epoch(self.date)})"
 
     @property
     def df(self) -> pd.DataFrame:
