@@ -27,7 +27,7 @@ class Position:
 
         self.logger.info(f"Position object is being created with action: {action}, quantity: {quantity}, "
                          f"ticker: {ticker}, date: {date}, cost: {cost}, commission: {commission} parameters")
-        self.action = action
+        self.action = action.lower()
         if not isnan(quantity):
             self.quantity = quantity
         else:

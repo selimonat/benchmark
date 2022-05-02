@@ -138,7 +138,8 @@ class PortfolioParser:
                 self.logger.info("No more missing columns")
                 # TODO: Test if the exception is correctly raised.
                 raise Exception(f'Cannot continue with missing incomplete columns list:\n {df.columns}')
-
+        self.logger.debug('lowering all action names.')
+        df['action'] = df['action'].str.lower()
         self.logger.debug('Parsed export file as follows\n' + df.to_string())
         self.logger.info('Parsing date column.')
         df['date'] = df['date_human'].astype(str).apply(parser.parse).astype(int) / 10 ** 9
@@ -152,8 +153,11 @@ class PortfolioParser:
         # make quantities negative for sold shares
         i = df.action == 'sell'
         df.loc[i, 'quantity'] = df.loc[i, 'quantity'] * -1
-        # TODO: validity check: if the returned value is NaN, then it is possible that this was a weekend or so. which
-        #  would lead NaN to be returned for the current_price.
+        # TODO: Uniformize actions.
+        # Validity check: if a complete row is na stop.
+        if (df.isna().sum(axis=1) == df.shape[1]).any():
+            raise Exception(f'Found one complete nan row in the parsed portfolio export file.')
+
         return df
 
     def column_mapper(self, old_colname):

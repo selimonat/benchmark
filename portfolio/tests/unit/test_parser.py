@@ -85,3 +85,9 @@ def test_Ticker_output():
     assert type(pp.tickers) == list
     assert type(pp.tickers[0]) == Ticker
     assert pp.df['ticker'].nunique() == len(pp.tickers)
+
+
+def test_capital_action_names():
+    filename = './portfolio/examples/portfolio_07.csv' # this is a portfolio with capital BUY and SOLD
+    pp = PortfolioParser(filename)
+    assert pp.positions[0].action == 'buy'

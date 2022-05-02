@@ -28,3 +28,10 @@ def test_valid_quantity():
     with pytest.raises(Exception) as exception:
         Position(action='buy', quantity=np.nan, ticker=ticker, date=start)
     assert f"{ticker} at {start} cannot have nan quantity." == str(exception.value)
+
+
+def test_lower_action_strings():
+    pos1 = Position(action='BUY', quantity=10, ticker='FB', date=0, cost=10)
+    assert pos1.action == 'buy'
+    pos1 = Position(action='SELL', quantity=10, ticker='FB', date=0, cost=10)
+    assert pos1.action == 'sell'
