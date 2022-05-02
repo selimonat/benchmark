@@ -1,7 +1,7 @@
 from portfolio.Parser import PortfolioParser
 from portfolio.Position import Position
 from portfolio.Ticker import Ticker
-from typing import Dict, List
+import pytest
 import pandas as pd
 import numpy as np
 
@@ -91,3 +91,10 @@ def test_capital_action_names():
     filename = './portfolio/examples/portfolio_07.csv' # this is a portfolio with capital BUY and SOLD
     pp = PortfolioParser(filename)
     assert pp.positions[0].action == 'buy'
+
+
+def test_wrong_action_name():
+    filename = './portfolio/examples/with_errors/portfolio_01.csv'
+    with pytest.raises(Exception) as exception:
+        pp = PortfolioParser(filename)
+    assert f'There are nans in the action column.' == str(exception.value)

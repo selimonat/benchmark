@@ -6,6 +6,7 @@ from typing import AnyStr, List, Dict
 from portfolio.Position import Position
 from portfolio.Ticker import Ticker
 from collections import defaultdict
+import numpy as np
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', 500)
@@ -20,6 +21,8 @@ mapping = {'action': ['action', 'type'],
            'ticker': ['symbol', 'ticker'],
            'date_human': ['trade date', 'purchase date']
            }
+
+actions = {'buy': ['bought', 'buy'], 'sell': ['sold', 'sell']}
 
 
 class PortfolioParser:
@@ -153,7 +156,16 @@ class PortfolioParser:
         # make quantities negative for sold shares
         i = df.action == 'sell'
         df.loc[i, 'quantity'] = df.loc[i, 'quantity'] * -1
-        # TODO: Uniformize actions.
+
+        # Uniformize actions.
+        def uniformized_action_row(name):
+            for k, v in actions.items():
+                if name in v:
+                    return k
+        df['action'] = df['action'].map(uniformized_action_row)
+        if df['action'].isna().any():
+            raise Exception('There are nans in the action column.')
+
         # Validity check: if a complete row is na stop.
         if (df.isna().sum(axis=1) == df.shape[1]).any():
             raise Exception(f'Found one complete nan row in the parsed portfolio export file.')

@@ -1,0 +1,3 @@
+Transaction,Company,Symbol,Trade Date,Type,N,Unit Price,Unit Price ($),S&P 500,CumSum,"Dollar @ Purchase Date",Sector, Industry
+1,FACEBOOK,FB2A.DE,02-13-2018,BUYYYYY,7.00,€142.89,#N/A,#N/A,"€1,000.23",#N/A,Communication Services,Internet Content & Information
+2,NVIDIA,NVD.DE,02-16-2018,BUY,20.00,#N/A,#N/A,#N/A,#N/A,#N/A,Technology,Semiconductors
