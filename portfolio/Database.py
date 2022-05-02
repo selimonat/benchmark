@@ -8,6 +8,7 @@ import pandas as pd
 import uuid
 import json
 from downloader import utils
+from time import sleep
 
 random.seed("die kartoffeln")
 
@@ -22,11 +23,11 @@ class DB:
     """
     Read-write interface to ES cluster for tickers.
     """
+    logger = utils.get_logger(__name__)
 
     def __init__(self, hostname="localhost:9200"):
         self.hostname = hostname
         self.client = Elasticsearch("http://elastic:changeme@" + self.hostname)
-        self.logger = utils.get_logger(self.__class__.__name__)
 
     def setup_es_index(self, index_name: str) -> bool:
         """Creates indices with INDEX_NAME using elasticsearch CLIENT"""
@@ -85,13 +86,9 @@ class DB:
                 self.logger.info(f"YF call  returned a df of size {df.shape}, we will cache this for future uses.")
                 # cache it
                 self.write(index_name, df)
-                # here we could recall the query_es to return a standard DF, but ES is not fast enough to return
-                # freshly written data, there are some asynchronous processes that leads to an empty return following
-                # a read which comes right after a write.
-                # df = self.query_es(index_name, ticker, date)
-                df = pd.DataFrame(index=pd.Index(date, name='date')).join(df, how='left')
-                df['ticker'] = ticker
-                df.ticker = df.ticker.astype("category")  # need to do this again
+                self.logger.info(f"Sleeping 5s, before re-query.")
+                sleep(5)
+                df = self.query_es(index_name, ticker, date)
 
         # if series is wanted than process it and convert it
         if output_format is "series":
