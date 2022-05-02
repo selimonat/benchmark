@@ -35,7 +35,7 @@ class Portfolio:
                              action=p.action,
                              quantity=p.quantity,
                              date=p.date,
-                             commision=p.commission)
+                             commission=p.commission)
                 )
         # create now a ne ticker object from the modified positions
         self.benchmark_ticker = Ticker(self.benchmark_positions)
