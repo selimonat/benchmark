@@ -24,7 +24,25 @@ mapping = {'action': ['action', 'type'],
 
 class PortfolioParser:
 
-    def __init__(self, filename):
+    def __init__(self, filename: AnyStr):
+        """
+        Parses a portfolio export file where each row represents an opened/closed transaction. Attempts to understand
+        action, quantity, ticker name and date variables.
+
+        It features the following properties:
+
+        self.df: The parsed file with each row being a transaction, these rows are not validated, meaning no errors
+        are thrown when something is wrong with the values.
+
+        self.positions: Returns each row as a validated Position object in a list. For validation see the Position
+        class.
+
+        self.{*positions, *tickers} are all build upn the self.positions method and represents some handy grouping of
+        the positions. For example, self.grouped_positions returns a dict as {ticker: [positions]}.
+
+        Args:
+            filename: (str)
+        """
         self.logger = utils.get_logger(__name__)
         self.filename = filename
         self.df = self.parse_file(self.filename)
