@@ -15,6 +15,7 @@ class Position:
     Validates dates, ticker, action and quantity. Dates must be weekdays and ticker must be a valid ticker. A valid
     ticker is a ticker that is used by a given exchange market.
     """
+    logger = utils.get_logger(__name__)
 
     def __init__(self,
                  action: AnyStr,
@@ -24,7 +25,6 @@ class Position:
                  cost: Optional[float] = None,
                  commission: Optional[float] = None):  # commission is currently in mock state.
 
-        self.logger = utils.get_logger(__name__)
         self.logger.info(f"Position object is being created with action: {action}, quantity: {quantity}, "
                          f"ticker: {ticker}, date: {date}, cost: {cost}, commission: {commission} parameters")
         self.action = action
@@ -84,4 +84,5 @@ class Position:
             self.logger.info(f"No value found for {self.ticker} at {self.date}, returning NaN")
             return float('nan')
         else:
+            print(out)
             raise Exception("The output should only be at most of length 1")

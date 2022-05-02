@@ -14,6 +14,7 @@ class Ticker:
     An ensemble of positions under the same ticker label.
     Keeps track of 3 variables: investment, value and profit/loss, all aligned on the same time-axis.
     """
+    logger = utils.get_logger(__name__)
 
     def __init__(self, positions: Sequence[Position], value=None, clean_weekends=True, today=None):
         """
@@ -29,7 +30,6 @@ class Ticker:
         """
         self.today = utils.today() if today is None else today
         self.clean_weekends = clean_weekends
-        self.logger = utils.get_logger(__name__)
         self.positions = positions
         # check if all positions are from the same ticker
         ticker = np.unique([pos.ticker for pos in self.positions])
