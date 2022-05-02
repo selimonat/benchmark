@@ -25,14 +25,12 @@ def db_update(ticker=None):
 @app.command()
 def parse_export(filename: str) -> str:
     """
-    Parse a personal portfolio .csv file (e.g. export from Yahoo Finance) to a transaction table.
+    Parse a personal portfolio .csv file (e.g. export from Yahoo Finance) to a validated transaction table.
     Returns:
-        Transaction table as JSON.
+        Prints validated transaction table.
     """
-    df = PortfolioParser(filename).df
-    out = df.to_dict(orient='records')
-    print(json.dumps(out, indent=4))
-    return json.dumps(out)
+    pp = PortfolioParser(filename)
+    [print(pos) for pos in pp.positions]
 
 
 @app.command()
