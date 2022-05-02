@@ -88,7 +88,7 @@ def test_Ticker_output():
 
 
 def test_capital_action_names():
-    filename = './portfolio/examples/portfolio_07.csv' # this is a portfolio with capital BUY and SOLD
+    filename = './portfolio/examples/portfolio_07.csv'  # this is a portfolio with capital BUY and SOLD
     pp = PortfolioParser(filename)
     assert pp.positions[0].action == 'buy'
 

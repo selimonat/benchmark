@@ -149,7 +149,6 @@ class PortfolioParser:
         df['date'] = df['date'].astype(int)
         self.logger.info('Sorting transaction table by date')
         df.sort_values(by='date', inplace=True)
-        self.logger.debug('Converted, now it looks like this\n' + df.to_string())
         self.logger.info('Adjusting datatypes, avoiding objects.')
         df['action'] = df['action'].astype("category")
         df['ticker'] = df['ticker'].astype("category")
@@ -169,7 +168,7 @@ class PortfolioParser:
         # Validity check: if a complete row is na stop.
         if (df.isna().sum(axis=1) == df.shape[1]).any():
             raise Exception(f'Found one complete nan row in the parsed portfolio export file.')
-
+        self.logger.debug('Parsed, now it looks like this\n' + df.to_string())
         return df
 
     def column_mapper(self, old_colname):
