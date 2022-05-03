@@ -57,7 +57,7 @@ class Portfolio:
                'benchmark portfolio returns (%)': self.current_benchmark_returns,
                'transactions': self.transactions_per_ticker,
                'current value': self.current_value_per_ticker,
-               'percent change': self.percent_change_per_ticker,
+               'percent change': self.current_return_per_ticker,
                'current number of shares': self.open_shares_per_ticker,
                'current sold shares': self.closed_shares_per_ticker,
                'total bought shares': self.total_shares_per_ticker,
@@ -82,9 +82,9 @@ class Portfolio:
         return self.portfolio_returns.iloc[-1].astype(float)
 
     @property
-    def percent_change_per_ticker(self):
+    def current_return_per_ticker(self):
         # the most recent return value as computed by self.returns..
-        return {t.ticker: t.tc_returns.loc[~t.tc_returns.isna()].iloc[-1] for t in self.tickers}
+        return {t.ticker: t.current_returns for t in self.tickers}
 
     @property
     def averaged_cost_per_ticker(self):
@@ -120,7 +120,7 @@ class Portfolio:
         out = defaultdict(list)
         for t in self.tickers:
             for p in t.positions:
-                out['ticker'].append(p.__str__())
+                out[t].append(p.__str__())
         return out
 
     @property
