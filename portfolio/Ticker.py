@@ -31,6 +31,7 @@ class Ticker:
         self.today = utils.today() if today is None else today
         self.clean_weekends = clean_weekends
         self.positions = positions
+        # VALIDATIONS:
         # check if all positions are from the same ticker
         ticker = np.unique([pos.ticker for pos in self.positions])
         if len(ticker) == 1:
@@ -39,15 +40,17 @@ class Ticker:
             raise Exception("There are different tickers in the positions list...")
         else:
             raise Exception("No positions are given...")
+
+        # Get the value or use the passed one.
         self.tc_ticker_value = db.read(self.ticker, self.time_line, output_format='series')
 
-        if value is not None:
+        if value is not None:  # use the passed value
             value = utils.ensure_iterable(value)
             self.tc_ticker_value = pd.Series(data=value * len(self.time_line) if len(value) == 1 else value,
                                              index=self.time_line,
                                              )
-        # TODO: Remove rows which are all nan.
 
+        # Prepare the data storing variables
         self.shares = list()
         self.mat_value = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
         self.mat_investment = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
@@ -77,7 +80,7 @@ class Ticker:
         """
         Updates mat_* matrices by adding new columns from the right side for each share.
         """
-        for share in range(pos.quantity):  # TODO: implementation improvement, remove the for loop
+        for share in range(int(pos.quantity)):  # TODO: implementation improvement, remove the for loop
             self.shares.append(len(self.shares))
             current_share = self.shares[-1]
             self.logger.info(f'Adding share {current_share}.')
@@ -138,7 +141,7 @@ class Ticker:
                           dtype=int) if len(self.positions) != 0 else []
         # exclude weekends
         weekends = [datetime.datetime.fromtimestamp(ts).weekday() <= 4 for ts in dummy]
-        self.logger.info(f"Will remove {np.sum(weekends)} weekend days from the time line")
+        # self.logger.info(f"Will remove {np.sum(weekends)} weekend days from the time line")
         return dummy[weekends] if self.clean_weekends else dummy
 
     # ######################################################
