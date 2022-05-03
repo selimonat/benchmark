@@ -78,9 +78,14 @@ class DB:
 
         if self.client.ping():  # if ES cluster reachable, get data from it:
             self.logger.info(f'Reading ticker {ticker} from index {index_name}')
-            df = self.query_es(index_name, ticker, date)  # it could be that the ticker is not present.
-            if df.empty:  # then make a direct YF call.
-                self.logger.info(f"DB does not have this data stored, will make a direct YF call.")
+            df = self.query_es(index_name, ticker, date)
+            # there are 3 possible outcomes here:
+            # (1) df is returned empty because it was not in the database.
+            # (2) df is not empty, but does not contain data at the required date.
+            # (3) df is not empty, and it contains the required date.
+            if df.empty or df.loc[date, 'Close'].isna().all():
+                self.logger.info(f"DB does not contain data for {ticker} at the required date {date}."
+                                 f"will make a direct YF call.")
                 # call YF directly via downloader.
                 df = utils.yf_call(ticker)
                 self.logger.info(f"YF call  returned a df of size {df.shape}, we will cache this for future uses.")
