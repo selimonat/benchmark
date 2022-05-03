@@ -120,8 +120,8 @@ class Portfolio:
         out = defaultdict(list)
         for t in self.tickers:
             for p in t.positions:
-                out[t].append(p.__str__())
-        return out
+                out[t.ticker].append(p.__str__())
+        return dict(out)
 
     @property
     def current_value_per_ticker(self):
