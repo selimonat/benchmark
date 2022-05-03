@@ -3,6 +3,7 @@ from numpy import isnan
 from typing import SupportsFloat, AnyStr, Optional
 from portfolio import Database
 from portfolio import utils
+import numpy as np
 db = Database.DB()
 
 
@@ -29,7 +30,7 @@ class Position:
                          f"ticker: {ticker}, date: {date}, cost: {cost}, commission: {commission} parameters")
         self.action = action.lower()
         if not isnan(quantity):
-            self.quantity = quantity
+            self.quantity = np.ceil(quantity)
         else:
             raise Exception(f"{ticker} at {date} cannot have nan quantity.")
 
@@ -75,12 +76,12 @@ class Position:
         """
         self.logger.info(f"Attempt to get the value of {self.ticker} at {self.date}.")
         out = db.read(ticker=self.ticker, date=date, output_format='series')
-        self.logger.debug(f"Received a df of shape {out.shape}.")
-        if out.shape[0] == 1:
+        self.logger.debug(f"Received a df of shape {out.shape}:\n {out}")
+        if (out.shape[0] == 1) and (not out.isna().any()):  # if there is data and it is not null.
             return out.iloc[0]
-        elif out.shape[0] == 0:
-            self.logger.info(f"No value found for {self.ticker} at {self.date}, returning NaN")
-            return float('nan')
+        elif (out.shape[0] == 0) or out.isna().any():  # if there is no data or it is a nan
+            self.logger.info(f"No value found for {self.ticker} at {self.date}.")
+            raise Exception("Cannot find the sell/buy value of the position.")
         else:
             print(out)
             raise Exception("The output should only be at most of length 1")
