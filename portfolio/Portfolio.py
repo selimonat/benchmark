@@ -12,7 +12,7 @@ db = DB()
 
 class Portfolio:
     """
-    Portfolio makes the book keeping of all transactions and time-course of asset prices.
+    Portfolio makes the bookkeeping of all transactions and time-course of asset prices.
     The class instance generates first a transaction table (indexed on transaction id) from the parsed export file.
     """
 
@@ -24,6 +24,8 @@ class Portfolio:
         """
         self.benchmark_symbol = benchmark_symbol
         self.tickers = tickers
+
+        # BENCHMARKING:
         # copy positions and replace all tickers with the benchmark ticker.
         dummy = copy.deepcopy(tickers)
         self.benchmark_positions = list()
@@ -52,18 +54,18 @@ class Portfolio:
 
     @property
     def summary(self):
-        out = {'portfolio value ($)': self.total_value_global,
+        out = {'portfolio value ($)': self.current_gross_value_global,
                'portfolio returns (%)': self.current_portfolio_returns,
                'benchmark portfolio returns (%)': self.current_benchmark_returns,
                'transactions': self.transactions_per_ticker,
                'current value': self.current_value_per_ticker,
                'percent change': self.current_return_per_ticker,
-               'current number of shares': self.open_shares_per_ticker,
-               'current sold shares': self.closed_shares_per_ticker,
-               'total bought shares': self.total_shares_per_ticker,
-               'average cost': self.averaged_cost_per_ticker,
-               'profit/lost': self.profit_loss_per_ticker,
-               'unrealized gain': self.unrealized_gain_per_ticker,
+               'current number of shares': self.current_open_shares_per_ticker,
+               'current sold shares': self.current_closed_shares_per_ticker,
+               'total bought shares': self.current_total_shares_per_ticker,
+               'average cost': self.current_averaged_cost_per_ticker,
+               'profit/lost': self.current_profit_loss_per_ticker,
+               'unrealized gain': self.current_unrealized_gain_per_ticker,
                'unfound tickers': []
                }
         return out
@@ -87,31 +89,31 @@ class Portfolio:
         return {t.ticker: t.current_returns for t in self.tickers}
 
     @property
-    def averaged_cost_per_ticker(self):
+    def current_averaged_cost_per_ticker(self):
         return {t.ticker: t.current_average_cost_per_share for t in self.tickers}
 
     @property
-    def total_shares_per_ticker(self):
+    def current_total_shares_per_ticker(self):
         return {t.ticker: t.current_total_shares for t in self.tickers}
 
     @property
-    def open_shares_per_ticker(self):
+    def current_open_shares_per_ticker(self):
         return {t.ticker: t.current_open_shares for t in self.tickers}
 
     @property
-    def closed_shares_per_ticker(self):
+    def current_closed_shares_per_ticker(self):
         return {t.ticker: t.current_closed_shares for t in self.tickers}
 
     @property
-    def total_value_global(self):
+    def current_gross_value_global(self):
         return np.sum([t.current_value for t in self.tickers])
 
     @property
-    def profit_loss_per_ticker(self):
+    def current_profit_loss_per_ticker(self):
         return {t.ticker: t.current_profit_loss for t in self.tickers}
 
     @property
-    def unrealized_gain_per_ticker(self):
+    def current_unrealized_gain_per_ticker(self):
         return {t.ticker: t.current_unrealized_gain for t in self.tickers}
 
     @property
