@@ -56,7 +56,7 @@ def test_equality_of_time_points():
     # send a vector of dates to db, and compare this to the index of the returned dataframe/series.
     start_time = 1599696000
     indices = np.arange(start_time, utils.today(), (60 * 60 * 24), dtype=int)
-    df = db.read(ticker='MSFT>', date=indices, output_format='series')
+    df = db.read(ticker='MSFT', date=indices, output_format='series')
     #  TODO: should the database return not found time points with Nans, or should only return the ones that are found?
     # Until this question is answered this test will fail, the next one is a related question.
     # also there lots of days where the data should be missing, such as holidays etc.
