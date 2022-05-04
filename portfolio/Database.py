@@ -13,12 +13,6 @@ from time import sleep
 random.seed("die kartoffeln")
 
 
-# TODO: exceptions where ticker doesn't exist must be handled. This requires a call to ES asking for existence of a
-#  ticker. If yes, things should normally proceed and otherwise either fallback must be used or the exception in
-#  db.read() must be handled.
-
-# TODO: make a YF as an optional connector.
-
 class DB:
     """
     Read-write interface to ES cluster for tickers.
@@ -83,7 +77,7 @@ class DB:
             # (1) df is returned empty because it was not in the database.
             # (2) df is not empty, but does not contain data at the required date.
             # (3) df is not empty, and it contains the required date.
-            if df.empty or df.loc[date, 'Close'].isna().all():
+            if df.empty or (df.loc[date, 'Close'].isna().all() if date is not None else True):
                 self.logger.info(f"DB does not contain data for {ticker} at the required date {date}."
                                  f"will make a direct YF call.")
                 # call YF directly via downloader.
@@ -106,7 +100,8 @@ class DB:
     def write(self, index_name: AnyStr, df: pd.DataFrame) -> bool:
         """
         Sends data to ES.
-        TODO: What happens if the same data is already there?
+        Data when sent twice leads to duplication in ES. To prevent this, all ticker data is first deleted
+        before writing.
         Args:
             index_name: Index name
             df: Bulk-sends a pandas Series to ES.
@@ -129,6 +124,8 @@ class DB:
             for node in df.reset_index().to_dict(orient='records')
         ]
         try:
+
+            # then write the new data
             response = helpers.bulk(self.client, actions)
             self.logger.info(f"Bulk sending data to ES, got this {response}.")
             return True
@@ -165,7 +162,45 @@ class DB:
             df_.ticker = df_.ticker.astype("category")
             return df_
 
-    def query_es(self, index_name, ticker, date):
+    def query_es(self, index_name: AnyStr, ticker: AnyStr, date: List) -> pd.DataFrame:
+        """
+        Internal method to query the ES. First the full ticker data is queried and once it is received it is filtered
+        for the requested dates.
+
+        Args:
+            index_name: ES index
+            ticker: ticker name
+            date: a list of epoch seconds.
+
+        Returns:
+            Either
+            (1) When the query fails, an empty dataframe with standard columns.
+            (2) When the query doesn't fail, a dataframe with values in it including possibly nans (when db doesnt
+            have the data for the required dates and ticker)
+
+        Examples:
+            Typical situation:
+                df = db.query_es(index_name='time-series',ticker='AMZN',date=[1650844800])
+                df
+                                 Close ticker
+                date
+                1650844800  2921.47998   AMZN
+
+            A non-existing ticker:
+                df = db.query_es(index_name='time-series',ticker='XXADFAFAFAFEAEFAF',date=[1650844800])
+                2022-05-03 15:25:32,800 - portfolio.Database - ERROR - 'DataFrame' object has no attribute 'date'
+                df
+                Empty DataFrame
+                Columns: []
+                Index: []
+
+            When ticker present but no data for the requested date:
+                df = db.query_es(index_name='time-series',ticker='AMZN',date=[1650844800])
+                df
+                                 Close ticker
+                date
+                1650844800  NaN   AMZN
+        """
         # empty df with standard columns
         df = pd.DataFrame(columns=['ticker', 'Close'], index=pd.Index([], name='date'))
         # return all data
@@ -200,3 +235,9 @@ class DB:
         except AttributeError as err:
             self.logger.error(err)
         return df
+
+    def delete_ticker(self, ticker: AnyStr, index: AnyStr = 'time-series'):
+        # first delete all data
+
+        delete_query = f"""{{"query": {{"match": {{"ticker": "{ticker}"}}}}}}"""
+        self.client.delete_by_query(index=index, body=delete_query)

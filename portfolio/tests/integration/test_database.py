@@ -67,3 +67,46 @@ def test_write_one_line():
     # read it back
     df_new = db.read(ticker, index_name=test_index, date=[time_point])
     assert df.equals(df_new)
+
+
+def test_write_after_deleting():
+
+    def create_df(date, ticker):
+        df = pd.DataFrame(data=[], columns=['ticker', 'Close'], index=pd.Index(date, name='date'))
+        df.ticker = ticker
+        df.Close = np.random.rand(len(date))
+        return df
+    # create a fake df, send it to db, and read it back, are they same?
+    ticker = 'blablablalbalblalbla'
+    date = [0, 1, 2]
+    df0 = create_df(date, ticker)
+    db.write(test_index, df0)
+    time.sleep(5)
+    df0r = db.read(ticker=ticker, index_name=test_index, date=date)
+    # does the size match?
+    assert df0r.shape[0] == 3
+    df_ = db.read(ticker=ticker, index_name=test_index, date=[1])
+    # does the content match?
+    assert df_.shape[0] == 1
+    # do we get nan when asked for non-existing data?
+    df_ = db.read(ticker=ticker, index_name=test_index, date=[3])
+    assert df_['Close'].isna().all()
+
+    # now add more data under the same ticker name. The data here is overlapping with the previous data, but ES has
+    # no knowledge of duplication so it will just duplicate them (because the doc_ids will be different).
+    date_2 = [0, 1, 2, 3]
+    df2 = create_df(date_2, ticker)
+    print(f"Now this one:\n{df2}")
+    db.write(test_index, df2)
+    time.sleep(5)
+    df2r = db.read(ticker=ticker, index_name=test_index)
+    # do we have the both dataset together ?
+    assert df2r.shape[0] == (len(date) + len(date_2))
+
+    # now delete the whole data and re-write it
+    db.delete_ticker(ticker, test_index)
+    db.write(test_index, df2)
+    time.sleep(5)
+    df3r = db.read(ticker=ticker, index_name=test_index)
+    # do we only get the new freshly written data?
+    assert df3r.shape[0] == len(date_2)
