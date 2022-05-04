@@ -174,14 +174,14 @@ class DB:
 
         Examples:
             Typical situation:
-                df = db.query_es(index_name='time-series',ticker='AMZN',date=[1650844800])
+                >>> df = db.query_es(index_name='time-series',ticker='AMZN',date=[1650844800])
                 df
                                  Close ticker
                 date
                 1650844800  2921.47998   AMZN
 
             A non-existing ticker:
-                df = db.query_es(index_name='time-series',ticker='XXADFAFAFAFEAEFAF',date=[1650844800])
+                >>> df = db.query_es(index_name='time-series',ticker='XXADFAFAFAFEAEFAF',date=[1650844800])
                 2022-05-03 15:25:32,800 - portfolio.Database - ERROR - 'DataFrame' object has no attribute 'date'
                 df
                 Empty DataFrame
@@ -189,7 +189,7 @@ class DB:
                 Index: []
 
             When ticker present but no data for the requested date:
-                df = db.query_es(index_name='time-series',ticker='AMZN',date=[1650844800])
+                >>> df = db.query_es(index_name='time-series',ticker='AMZN',date=[1650844800])
                 df
                                  Close ticker
                 date
