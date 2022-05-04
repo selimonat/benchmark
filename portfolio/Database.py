@@ -59,24 +59,18 @@ class DB:
             A series or df indexed on date with columns containing name of the ticker and its value.
         """
 
-        # the default DF to return is an empty df.
+        # the DF to return when ES cluster is not reachable. Making it non-empty makes it possible to run unittests.
         df = pd.DataFrame(data=1, columns=['ticker', 'Close'], index=pd.Index(date if date is not None else [],
                                                                               name='date'))
         df.ticker = df.ticker.astype("category")
-        # this is what happens below:
-        # - if the ES client is online, make a query.
-        #   - if the ticker is in, return it.
-        #   - if the ticker not present in db, then make a direct YF call and
-        #       - write the results to ES.
-        # - convert the df to series if requested and fillnan.
 
         if self.client.ping():  # if ES cluster reachable, get data from it:
-            self.logger.info(f'Reading ticker {ticker} from index {index_name}')
-            df = self.query_es(index_name, ticker, date)
-            # there are 3 possible outcomes here:
+            # there are 3 possible outcomes here if the db is online:
             # (1) df is returned empty because it was not in the database.
             # (2) df is not empty, but does not contain data at the required date.
             # (3) df is not empty, and it contains the required date.
+            self.logger.info(f'Reading ticker {ticker} from index {index_name}')
+            df = self.query_es(index_name, ticker, date)
             if df.empty or (df.loc[date, 'Close'].isna().all() if date is not None else True):
                 self.logger.info(f"DB does not contain data for {ticker} at the required date {date}."
                                  f"will make a direct YF call.")
@@ -203,6 +197,7 @@ class DB:
         """
         # empty df with standard columns
         df = pd.DataFrame(columns=['ticker', 'Close'], index=pd.Index([], name='date'))
+        df.ticker = df.ticker.astype("category")
         # return all data
         res = helpers.scan(self.client,
                            index=index_name,
