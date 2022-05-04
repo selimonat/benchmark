@@ -30,7 +30,7 @@ class Position:
                          f"ticker: {ticker}, date: {date}, cost: {cost}, commission: {commission} parameters")
         self.action = action.lower()
         if not isnan(quantity):
-            self.quantity = np.ceil(quantity)
+            self.quantity = int(np.ceil(quantity))  # TODO: need work for fractionalization.
         else:
             raise Exception(f"{ticker} at {date} cannot have nan quantity.")
 
@@ -83,5 +83,5 @@ class Position:
             self.logger.info(f"No value found for {self.ticker} at {self.date}.")
             raise Exception("Cannot find the sell/buy value of the position.")
         else:
-            print(out)
+            self.logger.info(f"This is the dataframe returned:\n{out}")
             raise Exception("The output should only be at most of length 1")
