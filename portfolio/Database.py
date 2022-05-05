@@ -71,13 +71,15 @@ class DB:
             # (3) df is not empty, and it contains the required date.
             self.logger.info(f'Reading ticker {ticker} from index {index_name}')
             df = self.query_es(index_name, ticker, date)
-            if df.empty or (df.loc[date, 'Close'].isna().all() if date is not None else True):
+            if df.empty or df.loc[:, 'Close'].isna().all():
                 self.logger.info(f"DB does not contain data for {ticker} at the required date {date}."
                                  f"will make a direct YF call.")
                 # call YF directly via downloader.
                 df = utils.yf_call(ticker)
                 self.logger.info(f"YF call  returned a df of size {df.shape}, we will cache this for future uses.")
-                # cache it
+
+                # cache only the initially requested dates.
+                df = df.loc[df.index.isin(date)]
                 self.write(index_name, df)
                 self.logger.info(f"Sleeping 5s, before re-query.")
                 sleep(5)
@@ -195,9 +197,6 @@ class DB:
                 date
                 1650844800  NaN   AMZN
         """
-        # empty df with standard columns
-        df = pd.DataFrame(columns=['ticker', 'Close'], index=pd.Index([], name='date'))
-        df.ticker = df.ticker.astype("category")
         # return all data
         res = helpers.scan(self.client,
                            index=index_name,
@@ -225,10 +224,18 @@ class DB:
                 df['ticker'] = ticker
                 df.ticker = df.ticker.astype("category")  # need to do this again
 
+            if df.reset_index().duplicated().any():
+                raise Exception(f"There are duplicates in DB for ticker {ticker}")
+
+            return df
         except NotFoundError as err:
             self.logger.error(err)
         except AttributeError as err:
             self.logger.error(err)
+
+        # empty df with standard columns
+        df = pd.DataFrame(columns=['ticker', 'Close'], index=pd.Index([], name='date'))
+        df.ticker = df.ticker.astype("category")
         return df
 
     def delete_ticker(self, ticker: AnyStr, index: AnyStr = 'time-series'):

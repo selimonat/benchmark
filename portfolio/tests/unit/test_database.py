@@ -41,7 +41,8 @@ def test_conversion_of_empty_dataframe():
 
 
 def test_read_one_line_dataframe():
-    df = db.read(ticker='AAPL', date=[1648598400])
+    a_monday = 1649635200
+    df = db.read(ticker='AAPL', date=[a_monday])
     assert df.shape[0] == 1
     assert type(df) == pd.DataFrame
 
