@@ -77,9 +77,9 @@ def test_shares_quantities():
     p = Portfolio([Ticker([pos1, pos3, pos4], today=a_thursday),
                    Ticker([pos2, pos5], today=a_thursday)
                    ])
-    assert np.sum(list(p.total_shares_per_ticker.values())) == \
-           (np.sum(list(p.open_shares_per_ticker.values())) +
-            np.sum(list(p.closed_shares_per_ticker.values())))
+    assert np.sum(list(p.current_total_shares_per_ticker.values())) == \
+           (np.sum(list(p.current_open_shares_per_ticker.values())) +
+            np.sum(list(p.current_closed_shares_per_ticker.values())))
 
 
 def test_benchmark_returns_must_be_same_when_tested_against_():
@@ -87,3 +87,11 @@ def test_benchmark_returns_must_be_same_when_tested_against_():
     pp = PortfolioParser(filename)
     p = Portfolio(pp.tickers, benchmark_symbol='FB')
     assert p.current_portfolio_returns == p.current_benchmark_returns
+
+
+# def test_fractional_portfolio():
+#     filename = './portfolio/examples/portfolio_08.csv'
+#     pp = PortfolioParser(filename)
+#     p = Portfolio(pp.tickers, benchmark_symbol='FB')
+#     a = 1 + 3
+#     p.summary
