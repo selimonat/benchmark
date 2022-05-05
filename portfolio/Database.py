@@ -78,8 +78,9 @@ class DB:
                 df = utils.yf_call(ticker)
                 self.logger.info(f"YF call  returned a df of size {df.shape}, we will cache this for future uses.")
 
-                # cache only the initially requested dates.
-                df = df.loc[df.index.isin(date)]
+                # cache only the initially requested dates, if any.
+                if date is not None:
+                    df = df.loc[df.index.isin(date)]
                 self.write(index_name, df)
                 self.logger.info(f"Sleeping 5s, before re-query.")
                 sleep(5)
