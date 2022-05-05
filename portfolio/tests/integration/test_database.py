@@ -8,6 +8,13 @@ db = DB()
 test_index = "pytest" + str(int(time.time()))
 
 
+def create_df(date, ticker):
+    df = pd.DataFrame(data=[], columns=['ticker', 'Close'], index=pd.Index(date, name='date'))
+    df.ticker = ticker
+    df.Close = np.random.rand(len(date))
+    return df
+
+
 def test_create_index():
     assert db.setup_es_index(test_index)
 
@@ -70,12 +77,6 @@ def test_write_one_line():
 
 
 def test_write_after_deleting():
-
-    def create_df(date, ticker):
-        df = pd.DataFrame(data=[], columns=['ticker', 'Close'], index=pd.Index(date, name='date'))
-        df.ticker = ticker
-        df.Close = np.random.rand(len(date))
-        return df
     # create a fake df, send it to db, and read it back, are they same?
     ticker = 'blablablalbalblalbla'
     date = [0, 1, 2]
@@ -110,3 +111,20 @@ def test_write_after_deleting():
     df3r = db.read(ticker=ticker, index_name=test_index)
     # do we only get the new freshly written data?
     assert df3r.shape[0] == len(date_2)
+
+
+def test_duplicate_entries_should_increase_number_of_documents():
+    date = [0]
+    ticker = 'blabla'
+    df = create_df(date, ticker)
+    db.write(test_index, df)
+    time.sleep(5)
+    df_ = db.read(ticker=ticker, index_name=test_index, date=date)
+    assert df.shape[0] == df_.shape[0]
+    assert df_.shape[0] == 1
+    # write it again and the size shouldn't change
+    db.write(test_index, df)
+    time.sleep(5)
+    df_ = db.read(ticker=ticker, index_name=test_index, date=date)
+    assert df.shape[0] == df_.shape[0]
+    assert df_.shape[0] == 1

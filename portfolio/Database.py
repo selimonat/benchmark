@@ -115,7 +115,7 @@ class DB:
             {
                 "_index": index_name,
                 "_type": "_doc",
-                "_id": uuid.uuid4(),
+                "_id": 'date' + str(int(node['date'])) + 'Close' + str(node['Close']) + 'ticker' + str(node['ticker']),
                 "_source": json.dumps(node)
             }
             for node in df.reset_index().to_dict(orient='records')
