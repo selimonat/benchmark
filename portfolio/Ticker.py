@@ -49,6 +49,15 @@ class Ticker:
             self.tc_ticker_value = pd.Series(data=value * len(self.time_line) if len(value) == 1 else value,
                                              index=self.time_line,
                                              )
+        # check that timeline and tc_ticker_value have the same size
+        if self.tc_ticker_value.index.shape[0] != len(self.time_line):
+            raise Exception(f"Timeline {len(self.time_line)} and tc_ticker_value {len(self.tc_ticker_value)} must have same sizes.")
+        # check that we do not have duplicate indices.
+        if self.tc_ticker_value.to_frame().reset_index().duplicated().any():
+            raise Exception(f"There are duplicated in DB for ticker {self.ticker}")
+        # check that we do not have a column full of nan.
+        if self.tc_ticker_value.isna().all():
+            raise Exception(f"There is a column full of nans for ticker {self.ticker}")
 
         # Prepare the data storing variables
         self.shares = list()
@@ -241,10 +250,6 @@ class Ticker:
     @property
     def current_profit_loss(self):
         return self.tc_profit_loss.iloc[-1].sum().astype(float)
-
-    @property
-    def current_value(self):
-        return self.tc_value.iloc[-1].astype(float)
 
     @property
     def current_ticker_value(self):
