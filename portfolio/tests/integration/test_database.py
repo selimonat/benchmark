@@ -20,6 +20,7 @@ def test_create_index():
 
 
 def test_returned_shape():
+    db.setup_es_index(test_index)
     size_ = np.ceil(np.random.random(size=1) * 100) + 1
     time_point = np.ceil(np.random.random(size=int(size_[0])) * 100000) + 1
     value = np.random.random(size=int(size_[0])) * 100000
@@ -61,6 +62,7 @@ def test_write_one_line():
     """
     Writes a new document to ES and reads it. Both dataframes must be equal.
     """
+    db.setup_es_index(test_index)
     time_point = 11111
     ticker = 'AAPL'
     value = 12.0
@@ -78,6 +80,7 @@ def test_write_one_line():
 
 def test_write_after_deleting():
     # create a fake df, send it to db, and read it back, are they same?
+    db.setup_es_index(test_index)
     ticker = 'blablablalbalblalbla'
     date = [0, 1, 2]
     df0 = create_df(date, ticker)
@@ -114,6 +117,7 @@ def test_write_after_deleting():
 
 
 def test_duplicate_entries_should_increase_number_of_documents():
+    db.setup_es_index(test_index)
     date = [0]
     ticker = 'blabla'
     df = create_df(date, ticker)

@@ -2,13 +2,14 @@
 from typing import Optional, List, AnyStr, Union
 import portfolio.utils as utils
 from elasticsearch import Elasticsearch, helpers, NotFoundError
-from elasticsearch_dsl import Index
+from elasticsearch_dsl import Index, Search
 import random
 import pandas as pd
 import uuid
 import json
 from downloader import utils
 from time import sleep
+from portfolio import es_query_collection as qe
 
 random.seed("die kartoffeln")
 
@@ -177,14 +178,16 @@ class DB:
 
         Examples:
             Typical situation:
-                >>> df = db.query_es(index_name='time-series',ticker='AMZN',date=[1650844800])
+                >>> from portfolio.Database import DB
+                >>> db = DB()
+                >>> df_ = db.query_es(index_name='time-series',ticker='AMZN',date=[1650844800])
                 df
                                  Close ticker
                 date
                 1650844800  2921.47998   AMZN
 
             A non-existing ticker:
-                >>> df = db.query_es(index_name='time-series',ticker='XXADFAFAFAFEAEFAF',date=[1650844800])
+                >>> df_ = db.query_es(index_name='time-series',ticker='XXADFAFAFAFEAEFAF',date=[1650844800])
                 2022-05-03 15:25:32,800 - portfolio.Database - ERROR - 'DataFrame' object has no attribute 'date'
                 df
                 Empty DataFrame
@@ -192,20 +195,18 @@ class DB:
                 Index: []
 
             When ticker present but no data for the requested date:
-                >>> df = db.query_es(index_name='time-series',ticker='AMZN',date=[1650844800])
+                >>> df_ = db.query_es(index_name='time-series',ticker='AMZN',date=[1650844800])
                 df
                                  Close ticker
                 date
                 1650844800  NaN   AMZN
         """
         # return all data
-        res = helpers.scan(self.client,
-                           index=index_name,
-                           query={"query": {"match": {"ticker": ticker}}},
-                           )
+        s = Search(index=index_name).using(self.client).extra(track_total_hits=True).query(qe.matcher(ticker))
+        # res = s.execute()
         # parse the raw results to pandas DF
         try:
-            df = pd.DataFrame([r['_source'] for r in res])
+            df = pd.DataFrame([hit.to_dict() for hit in s.scan()])
             # Adapt ES output to benchmark standards.
             # dtype conversions:
             df.date = df.date.astype(int)
@@ -220,7 +221,6 @@ class DB:
                 # left join with a df that contains all the requested time points.
                 # this will automatically create rows of NaN when the data was not present in the DB.
                 # as a side-effect ticker column will also contain nans, that's why I overwrite it that column
-                # TODO: one can directly ask for ES the requested dates rather than filtering them after the call.
                 df = pd.DataFrame(index=pd.Index(date, name='date')).join(df, how='left')
                 df['ticker'] = ticker
                 df.ticker = df.ticker.astype("category")  # need to do this again
