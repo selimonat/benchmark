@@ -51,3 +51,12 @@ def test_nan_value():
                         date=int(parser.parse('04-04-2019').timestamp()),
                         )
     assert f"Cannot find the sell/buy value of the position." == str(exception.value)
+
+
+def test_a_holiday():
+    # there is no data during an holiday. When such a date is requested the Position infers it from the surrounding
+    # datapoints. Here we only test that it is not NaN, without further validation.
+    ticker = 'GOOG'
+    date = 1579478400  # Martin Luther King, Jr.
+    pos = Position(action='buy', quantity=1, ticker=ticker, date=date)
+    assert pos.cost is not np.nan

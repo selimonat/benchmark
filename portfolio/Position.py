@@ -4,6 +4,7 @@ from typing import SupportsFloat, AnyStr, Optional
 from portfolio import Database
 from portfolio import utils
 import numpy as np
+
 db = Database.DB()
 
 
@@ -80,8 +81,17 @@ class Position:
         if (out.shape[0] == 1) and (not out.isna().any()):  # if there is data and it is not null.
             return out.iloc[0]
         elif (out.shape[0] == 0) or out.isna().any():  # if there is no data or it is a nan
-            self.logger.info(f"No value found for {self.ticker} at {self.date}.")
-            raise Exception("Cannot find the sell/buy value of the position.")
+            self.logger.info(f"No value found for {self.ticker} at {self.date}, will try surrounding dates.")
+
+            dates = list()
+            for n in [-3, -2, -1, 0, 1, 2, 3]:
+                dates.append(date[0] - 24 * 60 * 60 * n)
+            out = db.read(ticker=self.ticker, date=dates, output_format='series').loc[date]
+            # if STILL there is no data or it is a nan
+            if (out.shape[0] == 0) or out.isna().any():
+                raise Exception(f"Cannot find the sell/buy value of the position for {self.ticker} at {self.date}")
+            else:
+                return out.iloc[0]
         else:
             self.logger.info(f"This is the dataframe returned:\n{out}")
             raise Exception("The output should only be at most of length 1")
