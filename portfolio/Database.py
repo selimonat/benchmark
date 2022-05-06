@@ -5,7 +5,6 @@ from elasticsearch import Elasticsearch, helpers, NotFoundError
 from elasticsearch_dsl import Index, Search
 import random
 import pandas as pd
-import uuid
 import json
 from downloader import utils
 from time import sleep
@@ -239,5 +238,5 @@ class DB:
     def delete_ticker(self, ticker: AnyStr, index: AnyStr = 'time-series'):
         # first delete all data
 
-        delete_query = f"""{{"query": {{"match": {{"ticker": "{ticker}"}}}}}}"""
+        delete_query = qe.matcher(ticker)
         self.client.delete_by_query(index=index, body=delete_query)
