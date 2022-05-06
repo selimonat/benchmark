@@ -116,7 +116,7 @@ def test_write_after_deleting():
     assert df3r.shape[0] == len(date_2)
 
 
-def test_duplicate_entries_should_increase_number_of_documents():
+def test_duplicate_entries_should_not_increase_number_of_documents():
     db.setup_es_index(test_index)
     date = [0]
     ticker = 'blabla'
