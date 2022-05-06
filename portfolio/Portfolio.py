@@ -73,9 +73,11 @@ class Portfolio:
     # properties are organized to be specific either for tickers or for the portfolio (ie. all tickers).
     @property
     def portfolio_returns(self):
-        a = pd.concat([t.tc_returns for t in self.tickers], axis=1)  # returns
+        a_ = pd.concat([t.tc_returns for t in self.tickers], axis=1)  # returns
+        a = np.ma.array(a_.values,mask=a_.isna())
         w = pd.concat([t.tc_invested for t in self.tickers], axis=1)  # weights
-        s = pd.Series(np.average(a, axis=1, weights=w), index=a.index)  # weighted average.
+        w = np.ma.array(w.values, mask=w.isna())
+        s = pd.Series(np.ma.average(a, axis=1, weights=w), index=a_.index)  # weighted average.
         s.name = 'portfolio returns'
         return s
 
@@ -106,7 +108,7 @@ class Portfolio:
 
     @property
     def current_gross_value_global(self):
-        return np.sum([t.current_value for t in self.tickers])
+        return np.nansum([t.current_value for t in self.tickers])
 
     @property
     def current_profit_loss_per_ticker(self):
