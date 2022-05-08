@@ -89,7 +89,7 @@ class Position:
             out = db.read(ticker=self.ticker, date=dates, output_format='series').loc[date]
             # if STILL there is no data or it is a nan
             if (out.shape[0] == 0) or out.isna().any():
-                raise Exception(f"Cannot find the sell/buy value of the position for {self.ticker} at {self.date}")
+                raise Exception(f"Cannot find the sell/buy value of the position for {self.ticker} at {self.date}.")
             else:
                 return out.iloc[0]
         else:

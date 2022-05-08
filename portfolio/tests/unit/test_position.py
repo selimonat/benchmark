@@ -17,7 +17,8 @@ def test_invalid_ticker():
 def test_valid_ticker():
     # test with an unlikely ticker name.
     ticker = 'AMZN'
-    start = last_monday()
+    a_monday = 1649635200
+    start = a_monday
     Position(action='buy', quantity=1, ticker=ticker, date=start)
     assert True
 
@@ -44,13 +45,15 @@ def test_nan_value():
     ZS ticker has this data, so the company was public by then. it is a problem of the exchange, not of the ticker.
     In such cases we have to throw an exception.
     """
+    ticker='0ZC.F'
+    date=int(parser.parse('04-04-2019').timestamp())
     with pytest.raises(Exception) as exception:
         pos1 = Position(action='BUY',
                         quantity=10,
-                        ticker='0ZC.F',
-                        date=int(parser.parse('04-04-2019').timestamp()),
+                        ticker=ticker,
+                        date=date,
                         )
-    assert f"Cannot find the sell/buy value of the position." == str(exception.value)
+    assert f"Cannot find the sell/buy value of the position for {ticker} at {date}." == str(exception.value)
 
 
 def test_a_holiday():
