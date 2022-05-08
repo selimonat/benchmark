@@ -60,11 +60,13 @@ class DB:
         """
 
         # the DF to return when ES cluster is not reachable. Making it non-empty makes it possible to run unittests.
-        df = pd.DataFrame(data=1, columns=['ticker', 'Close'], index=pd.Index(date if date is not None else [],
-                                                                              name='date'))
+        df = pd.DataFrame(data=1,
+                          columns=pd.Index(['ticker', 'Close'], name=ticker),
+                          index=pd.Index(date if date is not None else [], name='date'))
         df.ticker = df.ticker.astype("category")
 
         if self.client.ping():  # if ES cluster reachable, get data from it:
+            self.setup_es_index(index_name=index_name)  # TODO: move this to the init stage
             # there are 3 possible outcomes here if the db is online:
             # (1) df is returned empty because it was not in the database.
             # (2) df is not empty, but does not contain data at the required date.
@@ -72,7 +74,7 @@ class DB:
             self.logger.info(f'Reading ticker {ticker} from index {index_name}')
             df = self.query_es(index_name, ticker, date)
             if df.empty or df.loc[:, 'Close'].isna().all():
-                self.logger.info(f"DB does not contain data for {ticker} at the required date {date}."
+                self.logger.info(f"DB does not contain data for {ticker} at the required date {date}, "
                                  f"will make a direct YF call.")
                 # call YF directly via downloader.
                 df = utils.yf_call(ticker)
@@ -107,7 +109,7 @@ class DB:
         if not set(df.reset_index().columns) == {'date', 'Close', 'ticker'}:
             self.logger.error('Required columns are not present.')
             return False
-
+        self.setup_es_index(index_name=index_name)  # TODO: move this to the init stage
         actions = [
             {
                 "_index": index_name,
@@ -203,6 +205,17 @@ class DB:
         # parse the raw results to pandas DF
         try:
             df = pd.DataFrame([hit.to_dict() for hit in s.scan()])
+            # TODO: Does the received and requested tickers match?
+            ticker_list = df.ticker.unique().tolist()
+
+            # Validations.
+            if len(ticker_list) > 1:
+                raise Exception(f'Received DF has more than one unique ticker values {ticker_list}')
+            if not (df.ticker == ticker).all():
+                raise Exception(f"The requested ticker {ticker} does not match to the received ticker {ticker_list[0]}")
+            if df.reset_index().duplicated().any():
+                raise Exception(f"There are duplicates in the index for ticker {ticker}")
+
             # Adapt ES output to benchmark standards.
             # dtype conversions:
             df.date = df.date.astype(int)
@@ -220,9 +233,7 @@ class DB:
                 df = pd.DataFrame(index=pd.Index(date, name='date')).join(df, how='left')
                 df['ticker'] = ticker
                 df.ticker = df.ticker.astype("category")  # need to do this again
-
-            if df.reset_index().duplicated().any():
-                raise Exception(f"There are duplicates in DB for ticker {ticker}")
+                df.columns.name = ticker
 
             return df
         except NotFoundError as err:
@@ -238,5 +249,5 @@ class DB:
     def delete_ticker(self, ticker: AnyStr, index: AnyStr = 'time-series'):
         # first delete all data
 
-        delete_query = qe.matcher(ticker)
+        delete_query = f"""{{"query": {{"match": {{"ticker": "{ticker}"}}}}}}"""
         self.client.delete_by_query(index=index, body=delete_query)

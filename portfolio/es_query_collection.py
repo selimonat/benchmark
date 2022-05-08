@@ -6,7 +6,7 @@ def matcher(ticker: AnyStr):
     """
     Basic query to fetch all matching tickers.
     """
-    return Q('match', ticker=ticker)
+    return Q('term', ticker__keyword=ticker)
 
 
 def time_filter(ticker: List, dates: List):
