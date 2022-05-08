@@ -32,7 +32,7 @@ def get_logger(name):
     # do the same with a file handler.
     if not os.path.exists('log'):
         os.makedirs('log')
-    f_handler = logging.FileHandler(os.path.join('log', f'{name}.log'))
+    f_handler = logging.FileHandler(os.path.join('log', 'benchmark.log'))
     f_handler.setLevel(logging.DEBUG)
     f_handler.setFormatter(formatter)
     logger_.addHandler(f_handler)
