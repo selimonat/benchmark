@@ -31,14 +31,13 @@ class Portfolio:
         self.benchmark_positions = list()
         for t in dummy:
             for p in t.positions:
+                paid = p.cost  # the money that was paid for this position.
                 # cost will be autofilled.
-                self.benchmark_positions.append(
-                    Position(ticker=self.benchmark_symbol,
-                             action=p.action,
-                             quantity=p.quantity,
-                             date=p.date,
-                             commission=p.commission)
-                )
+                pos = Position(ticker=self.benchmark_symbol, action=p.action, quantity=p.quantity, date=p.date,
+                               commission=p.commission)
+                # We need to adjust the quantity to have the same amount of investment.
+                # pos.quantity = paid / pos.cost
+                self.benchmark_positions.append(pos)
         # create now a ne ticker object from the modified positions
         self.benchmark_ticker = Ticker(self.benchmark_positions)
 
@@ -55,6 +54,7 @@ class Portfolio:
     @property
     def summary(self):
         out = {'portfolio value ($)': self.current_gross_value_global,
+               '_benchmark value ($)': self._current_gross_value_global_benchmark,
                'portfolio returns (%)': self.current_portfolio_returns,
                'benchmark portfolio returns (%)': self.current_benchmark_returns,
                'transactions': self.transactions_per_ticker,
@@ -74,7 +74,7 @@ class Portfolio:
     @property
     def portfolio_returns(self):
         a_ = pd.concat([t.tc_returns for t in self.tickers], axis=1)  # returns
-        a = np.ma.array(a_.values,mask=a_.isna())
+        a = np.ma.array(a_.values, mask=a_.isna())
         w = pd.concat([t.tc_invested for t in self.tickers], axis=1)  # weights
         w = np.ma.array(w.values, mask=w.isna())
         s = pd.Series(np.ma.average(a, axis=1, weights=w), index=a_.index)  # weighted average.
@@ -109,6 +109,10 @@ class Portfolio:
     @property
     def current_gross_value_global(self):
         return np.nansum([t.current_value for t in self.tickers])
+
+    @property
+    def _current_gross_value_global_benchmark(self):
+        return self.benchmark_ticker.current_value
 
     @property
     def current_profit_loss_per_ticker(self):
