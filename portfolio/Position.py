@@ -14,8 +14,10 @@ class Position:
     (2) the date of the transaction, (3) how many shares have been transacted, (4) the commission paid for this
     transaction (experimental). The price information is automatically filled unless it is manually given.
 
-    Validates dates, ticker, action and quantity. Dates must be weekdays and ticker must be a valid ticker. A valid
-    ticker is a ticker that is used by a given exchange market.
+    When the price information at date of transaction is NaN, it tries surrounding dates and take their average.
+
+    It validates dates, ticker validity, action and quantity parameters. Dates must be weekdays and ticker must be a
+    valid ticker. A valid ticker is a ticker that is used by a given exchange market.
     """
     logger = utils.get_logger(__name__)
 
@@ -30,20 +32,27 @@ class Position:
         self.logger.info(f"Position object is being created with action: {action}, quantity: {quantity}, "
                          f"ticker: {ticker}, date: {date}, cost: {cost}, commission: {commission} parameters")
         self.action = action.lower()
-        if not isnan(quantity):
-            self.quantity = int(np.ceil(quantity))  # TODO: need work for fractionalization.
-        else:
-            raise Exception(f"{ticker} at {date} cannot have nan quantity.")
 
+        # Validations:
+        #
+        # is ticker valid?
         if utils.is_valid_ticker(ticker):
             self.ticker = ticker
         else:
             raise Exception(f'{ticker} is not a valid ticker, I will not be able to retrieve asset value.')
+
         # You cannot open a position on a weekend.
         if not utils.is_weekend(date):
             self.date = date
         else:
             raise Exception(f'{date} is a weekend, I will not be able to retrieve asset value.')
+
+        # Is quantity given?
+        if not isnan(quantity):
+            self.quantity = int(np.ceil(quantity))  # TODO: need work for fractionalization.
+        else:
+            raise Exception(f"{ticker} at {date} cannot have nan quantity.")
+
         self.commission = 0 if commission is None else commission
         self.cost = self.value_at([self.date]) if cost is None else cost
 
@@ -82,7 +91,7 @@ class Position:
             return out.iloc[0]
         elif (out.shape[0] == 0) or out.isna().any():  # if there is no data or it is a nan
             self.logger.info(f"No value found for {self.ticker} at {self.date}, will try surrounding dates.")
-
+            # if there is no data then try surrounding dates.
             dates = list()
             for n in [-3, -2, -1, 0, 1, 2, 3]:
                 dates.append(date[0] - 24 * 60 * 60 * n)
