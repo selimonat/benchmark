@@ -60,7 +60,8 @@ class Ticker:
             raise Exception(f"There is a column full of nans for ticker {self.ticker}")
 
         # Prepare the data storing variables
-        self.shares = list()
+        self.lots = list()
+        self.mat_quantity = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
         self.mat_value = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
         self.mat_investment = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
         self.mat_profit_loss = pd.DataFrame(index=pd.Index(self.time_line, name='date'))
@@ -80,35 +81,40 @@ class Ticker:
         for pos in self.positions:
             if pos.action == "buy":
                 self.logger.info('Buying positions')
-                self.add_position(pos)
+                self.add_lot(pos)
             elif pos.action == "sell":
                 self.logger.info('Selling positions.')
                 self.close_position(pos)
 
-    def add_position(self, pos: Position):
+    def add_lot(self, pos: Position):
         """
         Updates mat_* matrices by adding new columns from the right side for each share.
         """
-        for share in range(int(pos.quantity)):  # TODO: implementation improvement, remove the for loop
-            self.shares.append(len(self.shares))
-            current_share = self.shares[-1]
-            self.logger.info(f'Adding share {current_share}.')
-            # fill up mat_investment
-            self.mat_investment[current_share] = pos.cost
-            invalid = self.mat_investment.index < pos.date  # invalid indices are prior to position opening.
-            self.mat_investment.loc[invalid, current_share] = np.nan
 
-            # fill up price
-            self.mat_value[current_share] = self.tc_ticker_value
-            self.mat_value.loc[invalid, current_share] = np.nan
+        self.lots.append(len(self.lots))
+        current_lot = self.lots[-1]
+        self.logger.info(f'Adding share {current_lot}.')
 
-            # fill up mat_profit_loss
-            self.mat_profit_loss[current_share] = 0
-            self.mat_profit_loss.loc[invalid, current_share] = np.nan
+        # fill up mat_investment
+        self.mat_investment[current_lot] = pos.cost
+        invalid = self.mat_investment.index < pos.date  # invalid indices are prior to position opening.
+        self.mat_investment.loc[invalid, current_lot] = np.nan
 
-            # increment the share counter
-            self.tc_counter_buy.loc[~invalid] += 1  # all valid points, including the date the position is open are
-            # incremented by 1.
+        # fill up mat_quantity
+        self.mat_quantity[current_lot] = pos.quantity
+        self.mat_quantity.loc[invalid, current_lot] = np.nan
+
+        # fill up price
+        self.mat_value[current_lot] = self.tc_ticker_value
+        self.mat_value.loc[invalid, current_lot] = np.nan
+
+        # fill up mat_profit_loss
+        self.mat_profit_loss[current_lot] = 0
+        self.mat_profit_loss.loc[invalid, current_lot] = np.nan
+
+        # increment the share counter
+        self.tc_counter_buy.loc[~invalid] += pos.quantity
+        # incremented by 1.
 
     def close_position(self, pos: Position):
         """
@@ -117,24 +123,51 @@ class Ticker:
         time-series are NaNized for all time-points coming after the sell transaction.
 
         """
-        if len(self.shares) < abs(pos.quantity):
-            raise ValueError('You do not have enough shares to sell.')
+        if self.tc_open_shares.loc[pos.date] < abs(pos.quantity):
+            raise ValueError(f'You do not have enough shares to sell {pos.quantity} at time {pos.date}.')
 
-        for share in range(abs(pos.quantity)):
-            current_share = self.mat_investment.loc[pos.date].notna().idxmax()
-            invalid = self.mat_investment.index >= pos.date  # all time points after the positions are closed are
-            # invalid.
+        to_be_sold = self.fifo(pos.quantity, pos.date)
+        self.mat_quantity -= to_be_sold
 
-            self.logger.info('Profit/Loss will be updated following this transaction')
-            self.mat_profit_loss.loc[invalid, current_share] = \
-                self.mat_value.loc[pos.date, current_share] - self.mat_investment.loc[pos.date, current_share]
+        self.logger.info('Profit/Loss will be updated following this transaction')
+        self.mat_profit_loss += to_be_sold * (self.mat_value - self.mat_investment)
 
-            self.logger.info(f'All time points bigger than {pos.date} will be nanized for share {current_share}.')
-            self.mat_investment.loc[invalid, current_share] = np.nan
-            self.mat_value.loc[invalid, current_share] = np.nan
+        # self.logger.info(f'All time points bigger than {pos.date} will be nanized for share {current_share}.')
+        self.mat_investment[self.mat_quantity == 0] = np.nan
+        self.mat_value[self.mat_quantity == 0] = np.nan
 
-            # decrement the share counter
-            self.tc_counter_sell.loc[invalid] += 1
+        # decrement the share counter
+        self.tc_counter_sell -= pos.quantity  # pos.quantity is a negative number, counter is positive.
+
+    def fifo(self, to_sell, date):
+        """
+        Implements the FIFO logic for deciding which shares to sell.
+        Args:
+            to_sell:
+            date:
+
+        Returns:
+
+        """
+        def _fifo():
+            nonlocal sold
+            nonlocal col
+            while sold < to_sell:
+                if (df.iloc[valid, col] == 0).all():  # if there are no shares to sell
+                    col = col + 1
+                    _fifo()
+                else:
+                    decrement = np.min([np.min(df.iloc[valid, col].unique()), to_sell-sold])
+                    df.iloc[valid, col] = df.iloc[valid, col] - decrement
+                    sold = sold + decrement
+        to_sell = np.abs(to_sell)
+        df = self.mat_quantity.copy()
+        # df = self.mat_quantity.copy()
+        valid = df.index >= date
+        sold = 0
+        col = 0
+        _fifo()
+        return self.mat_quantity - df
 
     @property
     def time_line(self):
@@ -160,7 +193,7 @@ class Ticker:
     @property
     def tc_invested(self):
         # total money that has been invested.
-        s = self.mat_investment.sum(axis=1)
+        s = (self.mat_investment * self.mat_quantity).sum(axis=1)
         s.name = 'tc_invested'
         return s
 
@@ -180,7 +213,7 @@ class Ticker:
     @property
     def tc_value(self):
         # portfolio value
-        s = self.mat_value.sum(axis=1, skipna=True, min_count=1)
+        s = (self.mat_value * self.mat_quantity).sum(axis=1, skipna=True, min_count=1)
         s.name = 'tc_value'
         return s
 
@@ -189,7 +222,7 @@ class Ticker:
 
     @property
     def tc_unrealized_gain(self):
-        s = (self.mat_value - self.mat_investment).sum(axis=1, skipna=True, min_count=1)
+        s = (self.mat_quantity*(self.mat_value - self.mat_investment)).sum(axis=1, skipna=True, min_count=1)
         s.name = 'tc_unrealized_gain'
         return s
 

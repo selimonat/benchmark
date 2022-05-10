@@ -131,7 +131,6 @@ def test_parameters_for_buy_two_sell_one_lot():
     pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=a_tuesday, cost=cost2)
     # Sold 5
     quantity3 = 5
-
     pos3 = Position(action='sell', quantity=quantity3, ticker='FB', date=a_wednesday)
     # today the value is 110.
     current_value = 110
@@ -180,23 +179,22 @@ def test_1():
 def test_2():
     # Open two positions.
     # Tests the mat_* dataframe and tc_* properties.
-    quantity1 = 2
+    quantity1 = q1 = 2
     cost1 = 100
     pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=a_monday, cost=cost1)
 
-    quantity2 = 1
+    quantity2 = q2 = 1
     cost2 = 120
     pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=a_tuesday, cost=cost2)
 
     current_value = 150
     t = Ticker([pos1, pos2], value=[cost1, cost2, current_value], today=a_wednesday)
 
-    assert np.array_equal(t.mat_investment.values, np.vstack([[100, 100, np.nan], [100, 100, 120], [100, 100, 120]]),
-                          equal_nan=True)
-    assert np.array_equal(t.mat_value.values, np.vstack([[100, 100, np.nan], [120, 120, 120], [150, 150, 150]]),
-                          equal_nan=True)
-    assert np.array_equal(t.mat_profit_loss.values, np.vstack([[0, 0, np.nan], [0, 0, 0], [0, 0, 0]]),
-                          equal_nan=True)
+    assert np.array_equal(t.mat_investment.values, np.vstack([[100, np.nan], [100, 120], [100, 120]]), equal_nan=True)
+
+    assert np.array_equal(t.mat_quantity.values, np.vstack([[q1, np.nan], [q1, q2], [q1, q2]]), equal_nan=True)
+    assert np.array_equal(t.mat_value.values, np.vstack([[100, np.nan], [120, 120], [150, 150]]), equal_nan=True)
+    assert np.array_equal(t.mat_profit_loss.values, np.vstack([[0, np.nan], [0, 0], [0, 0]]), equal_nan=True)
     assert (t.tc_cost.values == [200, 320, 320]).any()
     assert (t.tc_value.values == [200, 360, 450]).any()
     assert (t.tc_profit_loss.values == [0, 0, 0]).any()
@@ -207,46 +205,54 @@ def test_2():
 
 def test_3():
     # opening two positions, closing one. and opening another one. Tests the mat_* dataframe and tc_* properties.
-    quantity1 = 2
+    quantity1 = q1 = 2
     cost1 = 100
     pos1 = Position(action='buy', quantity=quantity1, ticker='FB', date=a_monday, cost=cost1)
 
-    quantity2 = 1
+    quantity2 = q2 = 1
     cost2 = 120
     pos2 = Position(action='buy', quantity=quantity2, ticker='FB', date=a_tuesday, cost=cost2)
 
-    quantity3 = 2
+    quantity3 = q3 = 2
     cost3 = 150  # unused for position but used as value in Ticker
     pos3 = Position(action='sell', quantity=quantity3, ticker='FB', date=a_wednesday)
 
-    quantity4 = 1
+    quantity4 = q4 = 1
     cost4 = 150
     pos4 = Position(action='buy', quantity=quantity4, ticker='FB', date=a_thursday, cost=cost4)
 
     current_value = 150
     t = Ticker([pos1, pos2, pos3, pos4], value=[cost1, cost2, cost3, cost4, current_value], today=a_friday)
 
-    assert np.array_equal(t.mat_investment.values, np.vstack([[100, 100, np.nan, np.nan],
-                                                              [100, 100, 120, np.nan],
-                                                              [np.nan, np.nan, 120, np.nan],
-                                                              [np.nan, np.nan, 120, 150],
-                                                              [np.nan, np.nan, 120, 150],
+    assert np.array_equal(t.mat_quantity.values, np.vstack([[2, np.nan, np.nan],
+                                                            [2, 1, np.nan],
+                                                            [0, 1, np.nan],
+                                                            [0, 1, 1],
+                                                            [0, 1, 1],
+                                                            ]),
+                          equal_nan=True)
+
+    assert np.array_equal(t.mat_investment.values, np.vstack([[100, np.nan, np.nan],
+                                                              [100, 120, np.nan],
+                                                              [np.nan, 120, np.nan],
+                                                              [np.nan, 120, 150],
+                                                              [np.nan, 120, 150],
                                                               ]),
                           equal_nan=True)
 
-    assert np.array_equal(t.mat_value.values, np.vstack([[100, 100, np.nan, np.nan],
-                                                         [120, 120, 120, np.nan],
-                                                         [np.nan, np.nan, 150, np.nan],
-                                                         [np.nan, np.nan, 150, 150],
-                                                         [np.nan, np.nan, 150, 150],
+    assert np.array_equal(t.mat_value.values, np.vstack([[100, np.nan, np.nan],
+                                                         [120, 120, np.nan],
+                                                         [np.nan, 150, np.nan],
+                                                         [np.nan, 150, 150],
+                                                         [np.nan, 150, 150],
                                                          ]),
                           equal_nan=True)
 
-    assert np.array_equal(t.mat_profit_loss.values, np.vstack([[0, 0, np.nan, np.nan],
-                                                               [0, 0, 0, np.nan],
-                                                               [50, 50, 0, np.nan],
-                                                               [50, 50, 0, 0],
-                                                               [50, 50, 0, 0],
+    assert np.array_equal(t.mat_profit_loss.values, np.vstack([[0, np.nan, np.nan],
+                                                               [0, 0, np.nan],
+                                                               [100, 0, np.nan],
+                                                               [100, 0, 0],
+                                                               [100, 0, 0],
                                                                ]),
                           equal_nan=True)
 
@@ -262,7 +268,7 @@ def test_not_enough_shares_to_sell():
     pos = Position(action='sell', quantity=3, ticker='FB', date=a_monday)
     with pytest.raises(Exception) as exception:
         Ticker([pos])
-    assert 'You do not have enough shares to sell.' == str(exception.value)
+    assert f'You do not have enough shares to sell {pos.quantity} at time {pos.date}.' == str(exception.value)
 
 
 def test_return_at_purchase_date():
@@ -291,3 +297,18 @@ def test_unrealized_gains():
     pos1 = Position(action='buy', quantity=quantity, ticker='FB', date=a_monday, cost=cost)
     ticker = Ticker([pos1], value=value)
     assert ticker.tc_unrealized_gain.iloc[-1] == (value - cost) * quantity
+
+
+def test_fractional_shares():
+    cost = 100
+    value = 200
+    pos1 = Position(action='buy', quantity=2, ticker='FB', date=a_monday, cost=cost)
+    pos2 = Position(action='buy', quantity=3, ticker='FB', date=a_tuesday, cost=cost)
+    pos3 = Position(action='sell', quantity=2.5, ticker='FB', date=a_wednesday, cost=cost)
+    t = Ticker([pos1, pos2, pos3], value=value, today=a_thursday)
+
+    assert np.array_equal(t.mat_quantity.values, np.vstack([[2., np.nan],
+                                                               [2., 3.],
+                                                               [0, 2.5],
+                                                               [0, 2.5],
+                                                               ]), equal_nan=True)

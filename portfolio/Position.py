@@ -49,12 +49,16 @@ class Position:
 
         # Is quantity given?
         if not isnan(quantity):
-            self.quantity = int(np.ceil(quantity))  # TODO: need work for fractionalization.
+            self.quantity = quantity
         else:
             raise Exception(f"{ticker} at {date} cannot have nan quantity.")
 
         self.commission = 0 if commission is None else commission
+        # unit value of the security
         self.cost = self.value_at([self.date]) if cost is None else cost
+        # sells are always negative
+        if self.action == 'sell':
+            self.quantity = -np.abs(self.quantity)
 
     def __str__(self):
         return f"{self.action[:3]} {self.quantity:10.2f} shares of {self.ticker:10} for {self.cost:10.2f}$ " \
