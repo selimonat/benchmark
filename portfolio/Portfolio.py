@@ -54,7 +54,6 @@ class Portfolio:
     @property
     def summary(self):
         out = {'portfolio value ($)': self.current_gross_value_global,
-               '_benchmark value ($)': self._current_gross_value_global_benchmark,
                'portfolio returns (%)': self.current_portfolio_returns,
                'benchmark portfolio returns (%)': self.current_benchmark_returns,
                'transactions': self.transactions_per_ticker,
@@ -109,10 +108,6 @@ class Portfolio:
     @property
     def current_gross_value_global(self):
         return np.nansum([t.current_value for t in self.tickers])
-
-    @property
-    def _current_gross_value_global_benchmark(self):
-        return self.benchmark_ticker.current_value
 
     @property
     def current_profit_loss_per_ticker(self):
