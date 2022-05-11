@@ -73,6 +73,11 @@ class DB:
             # (3) df is not empty, and it contains the required date.
             self.logger.info(f'Reading ticker {ticker} from index {index_name}')
             df = self.query_es(index_name, ticker, date)
+            #  Duplicate detection
+            if df.index.duplicated().sum() > 0:
+                raise Exception(f'There are duplicated in the DB {ticker}, asked for {len(date)} date points but got '
+                                f'{df.shape[0]}.')
+
             if df.empty or df.loc[:, 'Close'].isna().all():
                 self.logger.info(f"DB does not contain data for {ticker} at the required date {date}, "
                                  f"will make a direct YF call.")
