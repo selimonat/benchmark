@@ -30,6 +30,13 @@ class Ticker:
         """
         self.today = utils.today() if today is None else today
         self.clean_weekends = clean_weekends
+        # Sort positions
+        dates = [p.date for p in positions]
+        positions = [positions[i] for i in np.argsort(dates)]
+        dates = [p.date for p in positions]
+        if not np.all(np.diff(dates) >= 0):
+            raise Exception("List of positions must be sorted by date")
+
         self.positions = positions
         # VALIDATIONS:
         # check if all positions are from the same ticker
@@ -152,14 +159,21 @@ class Ticker:
         def _fifo():
             nonlocal sold
             nonlocal col
+            nonlocal iter_count
             while sold < to_sell:
+                iter_count += 1
+                print(iter_count)
                 if (df.iloc[valid, col] == 0).all():  # if there are no shares to sell
                     col = col + 1
                     _fifo()
                 else:
-                    decrement = np.min([np.min(df.iloc[valid, col].unique()), to_sell-sold])
+                    decrement = np.min([df.iloc[valid, col].min(), to_sell-sold])
                     df.iloc[valid, col] = df.iloc[valid, col] - decrement
                     sold = sold + decrement
+                if iter_count == 100:
+                    import pdb
+                    a=1
+        iter_count = 0
         to_sell = np.abs(to_sell)
         df = self.mat_quantity.copy()
         # df = self.mat_quantity.copy()
