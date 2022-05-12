@@ -1,0 +1,9 @@
+Transaction,Company,Symbol,Trade Date,Type,N,Unit Price,Unit Price ($),S&P 500,CumSum,"Dollar @Purchase Date",Sector,Industry
+16,NEW RELIC,2NR.F,02-07-2019,BUY,6.00,€90.68,#N/A,#N/A,#N/A,#N/A,Technology,Software—Infrastructure
+17,T2 BIOSYSTEMS,3T2.F,02-07-2019,BUY,103.00,€3.51,#N/A,#N/A,#N/A,#N/A,Healthcare,Diagnostics & Research
+18,NVIDIA,NVD.DE,02-08-2019,BUY,20.00,#N/A,#N/A,#N/A,#N/A,#N/A,Technology,Semiconductors
+19,APPIAN,910.F,02-22-2019,BUY,20.00,€32.00,#N/A,#N/A,#N/A,#N/A,Technology,Software—Infrastructure
+20,AMAZON,AMZ.DE,02-25-2019,BUY,1.00,"€1,452.10",#N/A,#N/A,#N/A,#N/A,Consumer Cyclical,Internet Retail
+21,GOOGLE,ABEA.DE,02-25-2019,BUY,1.00,€989.95,#N/A,#N/A,#N/A,#N/A,Communication Services,Internet Content & Information
+22,Ishares ETF,SXR8.DE,03-22-2019,BUY,0.61,#N/A,#N/A,#N/A,#N/A,#N/A,,
+23,ZSCALER,0ZC.MU,04-04-2019,BUY,10.00,€55.88,#N/A,#N/A,#N/A,#N/A,Technology,Software—Infrastructure
