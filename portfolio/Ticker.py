@@ -162,7 +162,6 @@ class Ticker:
             nonlocal iter_count
             while sold < to_sell:
                 iter_count += 1
-                print(iter_count)
                 if (df.iloc[valid, col] == 0).all():  # if there are no shares to sell
                     col = col + 1
                     _fifo()

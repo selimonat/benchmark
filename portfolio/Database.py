@@ -76,7 +76,7 @@ class DB:
             #  Duplicate detection
             if df.index.duplicated().sum() > 0:
                 raise Exception(f'There are duplicated in the DB {ticker}, asked for {len(date)} date points but got '
-                                f'{df.shape[0]}.')
+                                f'{df.shape[0]}. Date:\n{date},\nTicker:{ticker}\nDuplicates: {df.duplicated().index}')
 
             if df.empty or df.loc[:, 'Close'].isna().all():
                 self.logger.info(f"DB does not contain data for {ticker} at the required date {date}, "
